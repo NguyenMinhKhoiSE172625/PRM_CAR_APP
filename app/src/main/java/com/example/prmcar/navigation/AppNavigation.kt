@@ -12,6 +12,8 @@ import com.example.prmcar.data.repository.AuthRepository
 import com.example.prmcar.data.repository.CarRepository
 import com.example.prmcar.presentation.screen.CarListScreen
 import com.example.prmcar.presentation.screen.LoginScreen
+import com.example.prmcar.presentation.screen.CarDetailScreen
+import com.example.prmcar.presentation.screen.AddCarScreen
 import com.example.prmcar.presentation.viewmodel.AuthViewModel
 import com.example.prmcar.presentation.viewmodel.CarViewModel
 
@@ -97,29 +99,28 @@ fun AppNavigation(
                     carViewModel.getCarById(carId)
                 }
                 
-                // Placeholder for CarDetailScreen - you can implement this later
-                CarListScreen(
+                CarDetailScreen(
                     carUiState = carUiState,
                     authUiState = authUiState,
-                    onCarClick = { },
-                    onAddCarClick = { },
-                    onRefresh = { },
-                    onLogout = { authViewModel.logout() },
-                    onSearch = { }
+                    onBackClick = { navController.popBackStack() },
+                    onEditClick = { /* TODO: Implement edit */ },
+                    onDeleteClick = { id ->
+                        carViewModel.deleteCar(id)
+                        navController.popBackStack()
+                    }
                 )
             }
         }
 
         composable(Screen.AddCar.route) {
-            // Placeholder for AddCarScreen - you can implement this later
-            CarListScreen(
+            AddCarScreen(
                 carUiState = carUiState,
                 authUiState = authUiState,
-                onCarClick = { },
-                onAddCarClick = { },
-                onRefresh = { },
-                onLogout = { authViewModel.logout() },
-                onSearch = { }
+                onBackClick = { navController.popBackStack() },
+                onSaveClick = { carRequest ->
+                    carViewModel.createCar(carRequest)
+                    navController.popBackStack()
+                }
             )
         }
     }

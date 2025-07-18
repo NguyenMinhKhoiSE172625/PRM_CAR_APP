@@ -50,6 +50,14 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     
+    // Compose UI dependencies
+    implementation("androidx.compose.ui:ui-util")
+    implementation("androidx.compose.foundation:foundation")
+    implementation("androidx.compose.foundation:foundation-layout")
+    implementation("androidx.compose.material:material")
+    implementation("androidx.compose.runtime:runtime")
+    implementation("androidx.compose.runtime:runtime-livedata")
+    
     // Navigation Compose
     implementation("androidx.navigation:navigation-compose:2.7.5")
     
@@ -62,6 +70,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     
+    // Gson for JSON serialization
+    implementation("com.google.code.gson:gson:2.10.1")
+    
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     
@@ -70,6 +81,7 @@ dependencies {
     
     // Material Icons Extended
     implementation("androidx.compose.material:material-icons-extended:1.5.4")
+    implementation("androidx.compose.material:material-icons-core:1.5.4")
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

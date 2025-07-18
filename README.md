@@ -1,132 +1,120 @@
-# PRM CAR - Car Management Android App
+# PRM Car Management App
 
-Ứng dụng quản lý xe hơi được phát triển bằng Android (Kotlin + Jetpack Compose) và .NET Core Web API.
+Ứng dụng Android để quản lý xe hơi, kết nối với backend .NET Core API.
 
-## Cấu trúc Project
+## 🚀 Cách chạy ứng dụng
 
-- **PRMCAR/**: Android App (Frontend)
-- **CarManager/**: .NET Core Web API (Backend)
+### 1. Backend Setup
+```bash
+# Di chuyển vào thư mục backend
+cd CarManager/PRM392_Assigment_CarManager/WebAPI
 
-## Hướng dẫn chạy ứng dụng
-
-### 1. Chạy Backend (.NET API)
-
-1. Mở folder `CarManager/PRM392_Assigment_CarManager` bằng Visual Studio hoặc VS Code
-2. Restore packages:
-   ```bash
-   dotnet restore
-   ```
-3. Cập nhật connection string trong `WebAPI/appsettings.json` nếu cần
-4. Chạy API:
-   ```bash
-   cd WebAPI
-   dotnet run
-   ```
-5. API sẽ chạy tại `http://localhost:5274` (HTTP) hoặc `https://localhost:7051` (HTTPS)
-6. Truy cập Swagger UI tại: `http://localhost:5274/swagger`
-
-### 2. Setup Database
-
-1. Chạy script SQL trong file `CarManager/dataCarmanager.sql` để tạo database và dữ liệu mẫu
-2. Cập nhật connection string trong `appsettings.json` nếu cần
-
-### 3. Chạy Android App
-
-1. Mở folder `PRMCAR` bằng Android Studio
-2. Sync project để download dependencies
-3. Chạy ứng dụng trên emulator hoặc thiết bị thật
-
-## Tính năng chính
-
-- **Authentication**: Đăng nhập/đăng xuất với JWT tokens
-- **Car Management**: Xem danh sách xe, chi tiết xe, tìm kiếm
-- **Real-time Data**: Tự động refresh và hiển thị dữ liệu mới nhất
-
-## Tài khoản test
-
-Sử dụng các tài khoản có sẵn trong database:
-
-```
-Email: nguyenvana@example.com
-Password: hashed_pass_seller1
-
-Email: tranthib@example.com  
-Password: hashed_pass_buyer1
+# Chạy backend
+dotnet run
 ```
 
-## API Endpoints
+Backend sẽ chạy trên: `http://192.168.2.125:5274`
 
-### Authentication
+### 2. Database Setup
+- Database đã được tạo sẵn với dữ liệu mẫu
+- Các user test đã được thêm vào database
+
+### 3. Android App Setup
+```bash
+# Di chuyển vào thư mục app
+cd PRMCAR
+
+# Build app
+.\gradlew.bat build
+
+# Chạy app trên emulator hoặc thiết bị thật
+.\gradlew.bat installDebug
+```
+
+## 🔐 Thông tin đăng nhập
+
+### User Test Accounts:
+1. **Admin User:**
+   - Email: `test@example.com`
+   - Password: `test123`
+
+2. **Admin User 2:**
+   - Email: `admin@example.com`
+   - Password: `admin123`
+
+3. **Seller User:**
+   - Email: `seller@example.com`
+   - Password: `seller123`
+
+4. **Buyer User:**
+   - Email: `buyer@example.com`
+   - Password: `buyer123`
+
+## 📱 Tính năng chính
+
+- ✅ Đăng nhập/Đăng xuất
+- ✅ Xem danh sách xe
+- ✅ Tìm kiếm xe
+- ✅ Xem chi tiết xe (Click vào xe để xem chi tiết)
+- ✅ Thêm xe mới (Click nút + để thêm xe)
+- ✅ Xóa xe (Trong màn hình chi tiết xe)
+- ✅ Refresh danh sách (Pull to refresh)
+
+## 🔧 Cấu hình mạng
+
+App đã được cấu hình để cho phép HTTP traffic đến:
+- `10.0.2.2` (Android Emulator localhost)
+- `localhost`
+- `127.0.0.1`
+- `192.168.2.125` (IP thật của máy)
+
+## 🛠️ Troubleshooting
+
+### Lỗi "CLEARTEXT communication not permitted"
+- Đã được sửa bằng cách thêm IP vào `network_security_config.xml`
+
+### Lỗi "Unauthorized"
+- Kiểm tra backend có đang chạy không
+- Kiểm tra IP trong `ApiClient.kt` có đúng không
+- Sử dụng credentials đúng từ danh sách trên
+
+### Lỗi kết nối
+- Đảm bảo backend đang chạy trên `0.0.0.0:5274`
+- Kiểm tra firewall Windows
+- Đảm bảo emulator và máy host cùng mạng
+
+### Các nút không hoạt động
+- Đã được sửa bằng cách implement đầy đủ navigation và các screen
+- Click vào xe để xem chi tiết
+- Click nút + để thêm xe mới
+- Pull to refresh để làm mới danh sách
+
+## 📁 Cấu trúc project
+
+```
+PRMCAR/
+├── app/src/main/java/com/example/prmcar/
+│   ├── data/
+│   │   ├── api/          # API interfaces
+│   │   ├── model/        # Data models
+│   │   ├── preferences/  # Token management
+│   │   └── repository/   # Data repositories
+│   ├── presentation/
+│   │   ├── screen/       # UI screens
+│   │   └── viewmodel/    # ViewModels
+│   └── navigation/       # Navigation
+└── app/src/main/res/
+    └── xml/
+        └── network_security_config.xml
+```
+
+## 🎯 API Endpoints
+
 - `POST /api/Authentication/Login` - Đăng nhập
-
-### Cars
-- `GET /api/Cars` - Lấy danh sách xe (có filter, search, pagination)
+- `GET /api/Cars` - Lấy danh sách xe
 - `GET /api/Cars/{id}` - Lấy chi tiết xe
-- `POST /api/Cars` - Tạo xe mới
+- `POST /api/Cars` - Thêm xe mới
 - `PUT /api/Cars/{id}` - Cập nhật xe
 - `DELETE /api/Cars/{id}` - Xóa xe
 
-### Car Types
-- `GET /api/CarTypes` - Lấy danh sách loại xe
-- Các CRUD endpoints khác...
-
-### Transactions
-- `GET /api/Transactions` - Lấy danh sách giao dịch
-- Các CRUD endpoints khác...
-
-### Users
-- `GET /api/Users` - Lấy danh sách người dùng
-- Các CRUD endpoints khác...
-
-## Kiến trúc ứng dụng
-
-### Android App
-- **MVVM Pattern** với ViewModels
-- **Jetpack Compose** cho UI
-- **Retrofit** cho API calls
-- **Navigation Compose** cho điều hướng
-- **DataStore** cho lưu trữ token
-- **Coroutines & Flow** cho async operations
-
-### Backend API
-- **Clean Architecture** với Repository Pattern
-- **Entity Framework Core** cho database access
-- **JWT Authentication**
-- **AutoMapper** cho mapping models
-- **Swagger** cho API documentation
-
-## Troubleshooting
-
-### Lỗi Backend
-1. **".NET SDK not found"**: 
-   - Cài đặt .NET 8.0 SDK từ: https://dotnet.microsoft.com/download/dotnet/8.0
-   - Restart terminal sau khi cài đặt
-   - Kiểm tra: `dotnet --version`
-
-2. **Database errors**: 
-   - Kiểm tra SQL Server đang chạy
-   - Cập nhật connection string trong `appsettings.json`
-   - Chạy script SQL trong `dataCarmanager.sql`
-
-3. **Port conflicts**: Nếu port 5274 đã được sử dụng, sửa trong `launchSettings.json`
-
-### Lỗi Android App
-1. **Lỗi kết nối API**: 
-   - Đảm bảo backend đang chạy tại `http://localhost:5274`
-   - Kiểm tra network security config đã được thêm
-   - Với emulator, API URL phải là `http://10.0.2.2:5274`
-
-2. **Authentication issues**: 
-   - Kiểm tra JWT configuration trong appsettings.json
-   - Đảm bảo tài khoản test có trong database
-
-3. **Build errors**: 
-   - Sync project trong Android Studio
-   - Clean and rebuild project
-
-## Yêu cầu hệ thống
-
-- **Android**: API level 24+ (Android 7.0+)
-- **.NET**: .NET 8.0+
-- **Database**: SQL Server
-- **IDE**: Android Studio, Visual Studio/VS Code 
+Tất cả endpoints (trừ Login) yêu cầu JWT token trong header `Authorization: Bearer <token>` 

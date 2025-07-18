@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -52,7 +52,7 @@ fun CarListScreen(
             },
             actions = {
                 IconButton(onClick = onLogout) {
-                    Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
+                    Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout")
                 }
             }
         )
