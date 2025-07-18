@@ -149,29 +149,6 @@ fun LoginScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
 
-        // Test Credentials Info
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "Test Credentials:",
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Text(
-                    text = "Email: nguyenvana@example.com\nPassword: hashed_pass_seller1",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
     }
 } 

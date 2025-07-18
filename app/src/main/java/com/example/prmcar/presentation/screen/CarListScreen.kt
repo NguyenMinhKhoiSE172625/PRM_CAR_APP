@@ -139,7 +139,7 @@ fun CarListScreen(
                 )
             }
 
-            // Floating Action Button
+            // Floating Action Button - Hiển thị cho tất cả user đăng nhập
             FloatingActionButton(
                 onClick = onAddCarClick,
                 modifier = Modifier

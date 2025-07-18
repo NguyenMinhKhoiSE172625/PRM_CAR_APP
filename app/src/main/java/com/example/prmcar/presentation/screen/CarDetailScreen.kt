@@ -5,14 +5,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.prmcar.data.model.CarResponse
+import com.example.prmcar.data.utils.rememberImageUploadLauncher
 import com.example.prmcar.presentation.viewmodel.AuthUiState
 import com.example.prmcar.presentation.viewmodel.CarUiState
 import java.text.NumberFormat
@@ -24,15 +31,23 @@ fun CarDetailScreen(
     carUiState: CarUiState,
     authUiState: AuthUiState,
     onBackClick: () -> Unit,
-    onEditClick: (Int) -> Unit,
-    onDeleteClick: (Int) -> Unit
+    onDeleteClick: (Int) -> Unit,
+    onUploadImage: (Int) -> Unit
 ) {
     val selectedCar = carUiState.selectedCar
+    val context = LocalContext.current
+    
+    // Image upload launcher
+    val imageUploadLauncher = rememberImageUploadLauncher { uri ->
+        selectedCar?.let { car ->
+            onUploadImage(car.carId)
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Top App Bar
+        // Top App Bar - Không có nút edit
         TopAppBar(
             title = { Text("Car Details") },
             navigationIcon = {
@@ -42,7 +57,7 @@ fun CarDetailScreen(
             },
             actions = {
                 selectedCar?.let { car ->
-                    IconButton(onClick = { onEditClick(car.carId) }) {
+                    IconButton(onClick = { /* TODO: Implement edit logic */ }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit")
                     }
                 }
@@ -60,7 +75,9 @@ fun CarDetailScreen(
         } else if (selectedCar != null) {
             CarDetailContent(
                 car = selectedCar,
-                onDeleteClick = { onDeleteClick(selectedCar.carId) }
+                authUiState = authUiState,
+                onDeleteClick = { onDeleteClick(selectedCar.carId) },
+                onUploadImage = { imageUploadLauncher.launch("image/*") }
             )
         } else {
             Box(
@@ -70,13 +87,40 @@ fun CarDetailScreen(
                 Text("Car not found")
             }
         }
+        
+        // Loading indicator for image upload
+        if (carUiState.isUploadingImage) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text("Uploading image...")
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
 private fun CarDetailContent(
     car: CarResponse,
-    onDeleteClick: () -> Unit
+    authUiState: AuthUiState,
+    onDeleteClick: () -> Unit,
+    onUploadImage: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -84,24 +128,65 @@ private fun CarDetailContent(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Car Image Placeholder
+        // Car Image Section
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp),
+                .height(250.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
             Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.fillMaxSize()
             ) {
-                Text(
-                    text = "Car Image",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (!car.imageUrl.isNullOrBlank()) {
+                    // Hiển thị ảnh từ URL
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(car.imageUrl ?: "")
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Car Image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // Placeholder khi chưa có ảnh
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Camera,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "No Image Available",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+                
+                // Upload button overlay
+                FloatingActionButton(
+                    onClick = onUploadImage,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Upload Image")
+                }
             }
         }
 
@@ -236,14 +321,11 @@ private fun CarDetailContent(
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Action Buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+        // Delete Button (chỉ hiển thị cho Admin và Seller)
+        if (authUiState.userType == "Admin" || authUiState.userType == "Seller") {
             Button(
                 onClick = onDeleteClick,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error
                 )

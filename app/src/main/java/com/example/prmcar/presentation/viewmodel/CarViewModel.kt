@@ -1,11 +1,14 @@
 package com.example.prmcar.presentation.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.prmcar.data.model.CarRequest
 import com.example.prmcar.data.model.CarResponse
 import com.example.prmcar.data.model.CarTypeResponse
 import com.example.prmcar.data.repository.CarRepository
+import com.example.prmcar.data.utils.ImageUploadManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,10 +20,14 @@ data class CarUiState(
     val carTypes: List<CarTypeResponse> = emptyList(),
     val selectedCar: CarResponse? = null,
     val errorMessage: String? = null,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
+    val isUploadingImage: Boolean = false
 )
 
-class CarViewModel(private val carRepository: CarRepository) : ViewModel() {
+class CarViewModel(
+    private val carRepository: CarRepository,
+    private val imageUploadManager: ImageUploadManager
+) : ViewModel() {
     
     private val _uiState = MutableStateFlow(CarUiState())
     val uiState: StateFlow<CarUiState> = _uiState.asStateFlow()
@@ -163,6 +170,25 @@ class CarViewModel(private val carRepository: CarRepository) : ViewModel() {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         errorMessage = exception.message ?: "Failed to delete car"
+                    )
+                }
+        }
+    }
+
+    fun uploadImage(context: Context, imageUri: Uri, carId: Int) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isUploadingImage = true, errorMessage = null)
+            
+            imageUploadManager.uploadImage(context, imageUri, carId)
+                .onSuccess { imageUrl ->
+                    _uiState.value = _uiState.value.copy(isUploadingImage = false)
+                    // Refresh car details to show new image
+                    getCarById(carId)
+                }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isUploadingImage = false,
+                        errorMessage = exception.message ?: "Failed to upload image"
                     )
                 }
         }

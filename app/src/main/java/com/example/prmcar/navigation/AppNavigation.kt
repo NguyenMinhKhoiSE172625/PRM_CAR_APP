@@ -7,9 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.prmcar.data.preferences.TokenManager
-import com.example.prmcar.data.repository.AuthRepository
-import com.example.prmcar.data.repository.CarRepository
+import com.example.prmcar.di.AppModule
 import com.example.prmcar.presentation.screen.CarListScreen
 import com.example.prmcar.presentation.screen.LoginScreen
 import com.example.prmcar.presentation.screen.CarDetailScreen
@@ -31,12 +29,9 @@ fun AppNavigation(
     navController: NavHostController = rememberNavController()
 ) {
     val context = LocalContext.current
-    val tokenManager = remember { TokenManager(context) }
-    val authRepository = remember { AuthRepository(tokenManager) }
-    val carRepository = remember { CarRepository(tokenManager) }
     
-    val authViewModel: AuthViewModel = viewModel { AuthViewModel(authRepository) }
-    val carViewModel: CarViewModel = viewModel { CarViewModel(carRepository) }
+    val authViewModel: AuthViewModel = viewModel { AppModule.createAuthViewModel(context) }
+    val carViewModel: CarViewModel = viewModel { AppModule.createCarViewModel(context) }
     
     val authUiState by authViewModel.uiState.collectAsState()
     val carUiState by carViewModel.uiState.collectAsState()
@@ -103,10 +98,13 @@ fun AppNavigation(
                     carUiState = carUiState,
                     authUiState = authUiState,
                     onBackClick = { navController.popBackStack() },
-                    onEditClick = { /* TODO: Implement edit */ },
                     onDeleteClick = { id ->
                         carViewModel.deleteCar(id)
                         navController.popBackStack()
+                    },
+                    onUploadImage = { id ->
+                        // Sử dụng ImageUploadLauncher từ CarDetailScreen
+                        // Chức năng này sẽ được xử lý trong CarDetailScreen
                     }
                 )
             }
@@ -120,6 +118,10 @@ fun AppNavigation(
                 onSaveClick = { carRequest ->
                     carViewModel.createCar(carRequest)
                     navController.popBackStack()
+                },
+                onUploadImage = {
+                    // Sử dụng ImageUploadLauncher từ AddCarScreen
+                    // Chức năng này sẽ được xử lý trong AddCarScreen
                 }
             )
         }

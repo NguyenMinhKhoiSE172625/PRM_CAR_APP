@@ -44,7 +44,7 @@ object ApiClient {
             .build()
     }
 
-    private fun createRetrofit(tokenManager: TokenManager): Retrofit {
+    fun createRetrofit(tokenManager: TokenManager): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(createOkHttpClient(tokenManager))

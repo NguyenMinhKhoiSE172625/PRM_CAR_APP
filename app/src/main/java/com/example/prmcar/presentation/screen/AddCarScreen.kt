@@ -5,14 +5,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.prmcar.data.model.CarRequest
 import com.example.prmcar.data.model.CarTypeResponse
+import com.example.prmcar.data.utils.rememberImageUploadLauncher
 import com.example.prmcar.presentation.viewmodel.AuthUiState
 import com.example.prmcar.presentation.viewmodel.CarUiState
 import java.text.SimpleDateFormat
@@ -24,7 +31,8 @@ fun AddCarScreen(
     carUiState: CarUiState,
     authUiState: AuthUiState,
     onBackClick: () -> Unit,
-    onSaveClick: (CarRequest) -> Unit
+    onSaveClick: (CarRequest) -> Unit,
+    onUploadImage: () -> Unit
 ) {
     var carName by remember { mutableStateOf("") }
     var make by remember { mutableStateOf("") }
@@ -37,6 +45,14 @@ fun AddCarScreen(
     var description by remember { mutableStateOf("") }
     var selectedCarTypeId by remember { mutableStateOf<Int?>(null) }
     var expanded by remember { mutableStateOf(false) }
+    var imageUrl by remember { mutableStateOf<String?>(null) }
+    
+    // Image upload launcher
+    val imageUploadLauncher = rememberImageUploadLauncher { uri ->
+        // TODO: Implement image upload logic
+        // For now, just set a placeholder URL
+        imageUrl = "https://example.com/placeholder.jpg"
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -50,25 +66,26 @@ fun AddCarScreen(
                 }
             },
             actions = {
-                                    IconButton(
-                        onClick = {
-                            val carRequest = CarRequest(
-                                carName = carName,
-                                make = make,
-                                model = model,
-                                manufactureYear = manufactureYear.toIntOrNull() ?: 0,
-                                carTypeId = selectedCarTypeId,
-                                color = color.ifBlank { null },
-                                mileage = mileage.toIntOrNull(),
-                                licensePlate = licensePlate.ifBlank { null },
-                                askingPrice = askingPrice.toDoubleOrNull() ?: 0.0,
-                                description = description.ifBlank { null },
-                                status = "Available",
-                                listingDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
-                                sellerId = null
-                            )
-                            onSaveClick(carRequest)
-                        },
+                IconButton(
+                    onClick = {
+                        val carRequest = CarRequest(
+                            carName = carName,
+                            make = make,
+                            model = model,
+                            manufactureYear = manufactureYear.toIntOrNull() ?: 0,
+                            carTypeId = selectedCarTypeId,
+                            color = color.ifBlank { null },
+                            mileage = mileage.toIntOrNull(),
+                            licensePlate = licensePlate.ifBlank { null },
+                            askingPrice = askingPrice.toDoubleOrNull() ?: 0.0,
+                            description = description.ifBlank { null },
+                            status = "Available",
+                            listingDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
+                            sellerId = null,
+                            imageUrl = imageUrl
+                        )
+                        onSaveClick(carRequest)
+                    },
                     enabled = carName.isNotBlank() && make.isNotBlank() && model.isNotBlank() && 
                              manufactureYear.isNotBlank() && askingPrice.isNotBlank()
                 ) {
@@ -84,6 +101,70 @@ fun AddCarScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Image Upload Section
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    if (!imageUrl.isNullOrBlank()) {
+                        // Hiển thị ảnh đã upload
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(imageUrl ?: "")
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Car Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        // Placeholder cho upload ảnh
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Camera,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Tap to upload car image",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                    
+                    // Upload button
+                    FloatingActionButton(
+                        onClick = { imageUploadLauncher.launch("image/*") },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Upload Image")
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Car Name
             OutlinedTextField(
                 value = carName,
@@ -238,7 +319,8 @@ fun AddCarScreen(
                         description = description.ifBlank { null },
                         status = "Available",
                         listingDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
-                        sellerId = null
+                        sellerId = null,
+                        imageUrl = imageUrl
                     )
                     onSaveClick(carRequest)
                 },
