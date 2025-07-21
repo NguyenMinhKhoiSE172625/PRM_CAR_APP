@@ -1,58 +1,80 @@
-# PRM CAR - Car Management Android App
+# PRM Car Management App
 
-Ứng dụng quản lý xe hơi được phát triển bằng Android (Kotlin + Jetpack Compose) và .NET Core Web API.
-
-## Cấu trúc Project
-
-- **PRMCAR/**: Android App (Frontend)
-- **CarManager/**: .NET Core Web API (Backend)
-
-## Hướng dẫn chạy ứng dụng
-
-### 1. Chạy Backend (.NET API)
-
-1. Mở folder `CarManager/PRM392_Assigment_CarManager` bằng Visual Studio hoặc VS Code
-2. Restore packages:
-   ```bash
-   dotnet restore
-   ```
-3. Cập nhật connection string trong `WebAPI/appsettings.json` nếu cần
-4. Chạy API:
-   ```bash
-   cd WebAPI
-   dotnet run
-   ```
-5. API sẽ chạy tại `http://localhost:5274` (HTTP) hoặc `https://localhost:7051` (HTTPS)
-6. Truy cập Swagger UI tại: `http://localhost:5274/swagger`
-
-### 2. Setup Database
-
-1. Chạy script SQL trong file `CarManager/dataCarmanager.sql` để tạo database và dữ liệu mẫu
-2. Cập nhật connection string trong `appsettings.json` nếu cần
-
-### 3. Chạy Android App
-
-1. Mở folder `PRMCAR` bằng Android Studio
-2. Sync project để download dependencies
-3. Chạy ứng dụng trên emulator hoặc thiết bị thật
+Ứng dụng quản lý xe hơi với các tính năng phân quyền theo role và upload ảnh.
 
 ## Tính năng chính
 
-- **Authentication**: Đăng nhập/đăng xuất với JWT tokens
-- **Car Management**: Xem danh sách xe, chi tiết xe, tìm kiếm
-- **Real-time Data**: Tự động refresh và hiển thị dữ liệu mới nhất
+### 🔐 Authentication & Authorization
+- **Đăng nhập**: Tất cả users đều đăng nhập bằng Email và Password
+- **Phân quyền theo role**:
+  - **Admin**: Toàn quyền (xem, thêm, xóa xe, upload ảnh)
+  - **Seller**: Có thể thêm, xóa xe và upload ảnh
+  - **Buyer**: Chỉ xem danh sách xe và chi tiết xe
+
+### 🚗 Quản lý xe
+- **Homepage**: Hiển thị danh sách xe với tìm kiếm
+- **Car Details**: Xem chi tiết xe (không thể sửa)
+- **Add Car**: Thêm xe mới (chỉ Admin và Seller)
+- **Delete Car**: Xóa xe (chỉ Admin và Seller)
+
+### 📸 Upload ảnh
+- **Chọn ảnh**: Từ gallery hoặc camera
+- **Lưu URL**: Ảnh được lưu dưới dạng URL để load lại khi mở app
+- **Hiển thị ảnh**: Sử dụng Coil để load ảnh từ URL
+
+## Cấu trúc dự án
+
+```
+PRMCAR/
+├── app/src/main/java/com/example/prmcar/
+│   ├── data/
+│   │   ├── api/           # API services
+│   │   ├── model/         # Data models
+│   │   ├── repository/    # Repository layer
+│   │   └── utils/         # Utilities (ImageUploadManager)
+│   ├── di/                # Dependency injection
+│   ├── navigation/        # Navigation
+│   ├── presentation/
+│   │   ├── screen/        # UI screens
+│   │   └── viewmodel/     # ViewModels
+│   └── ui/theme/          # UI theme
+```
+
+## Cài đặt và chạy
+
+### Yêu cầu
+- Android Studio Hedgehog | 2023.1.1
+- Android SDK 35
+- Kotlin 1.9.0
+
+### Bước 1: Clone và mở project
+```bash
+git clone <repository-url>
+cd PRMCAR
+```
+
+### Bước 2: Cấu hình backend
+Đảm bảo backend PRM392 đang chạy trên `http://localhost:5274`
+
+### Bước 3: Build và chạy
+```bash
+./gradlew build
+./gradlew installDebug
+```
 
 ## Tài khoản test
 
-Sử dụng các tài khoản có sẵn trong database:
+### Admin
+- Email: `admin@example.com`
+- Password: `admin123`
 
-```
-Email: nguyenvana@example.com
-Password: hashed_pass_seller1
+### Seller
+- Email: `seller@example.com`
+- Password: `seller123`
 
-Email: tranthib@example.com  
-Password: hashed_pass_buyer1
-```
+### Buyer
+- Email: `buyer@example.com`
+- Password: `buyer123`
 
 ## API Endpoints
 
@@ -60,73 +82,82 @@ Password: hashed_pass_buyer1
 - `POST /api/Authentication/Login` - Đăng nhập
 
 ### Cars
-- `GET /api/Cars` - Lấy danh sách xe (có filter, search, pagination)
+- `GET /api/Cars` - Lấy danh sách xe
 - `GET /api/Cars/{id}` - Lấy chi tiết xe
-- `POST /api/Cars` - Tạo xe mới
+- `POST /api/Cars` - Thêm xe mới
 - `PUT /api/Cars/{id}` - Cập nhật xe
 - `DELETE /api/Cars/{id}` - Xóa xe
 
-### Car Types
-- `GET /api/CarTypes` - Lấy danh sách loại xe
-- Các CRUD endpoints khác...
+### Image Upload
+- `POST /api/upload/image` - Upload ảnh
+- `POST /api/cars/{carId}/image` - Cập nhật ảnh cho xe
 
-### Transactions
-- `GET /api/Transactions` - Lấy danh sách giao dịch
-- Các CRUD endpoints khác...
+## Công nghệ sử dụng
 
-### Users
-- `GET /api/Users` - Lấy danh sách người dùng
-- Các CRUD endpoints khác...
+### Frontend (Android)
+- **Jetpack Compose** - UI framework
+- **Navigation Compose** - Navigation
+- **ViewModel & StateFlow** - State management
+- **Retrofit** - HTTP client
+- **Coil** - Image loading
+- **DataStore** - Local storage
 
-## Kiến trúc ứng dụng
+### Backend (ASP.NET Core)
+- **Entity Framework Core** - ORM
+- **JWT Authentication** - Authentication
+- **AutoMapper** - Object mapping
+- **Repository Pattern** - Data access
 
-### Android App
-- **MVVM Pattern** với ViewModels
-- **Jetpack Compose** cho UI
-- **Retrofit** cho API calls
-- **Navigation Compose** cho điều hướng
-- **DataStore** cho lưu trữ token
-- **Coroutines & Flow** cho async operations
+## Tính năng nổi bật
 
-### Backend API
-- **Clean Architecture** với Repository Pattern
-- **Entity Framework Core** cho database access
-- **JWT Authentication**
-- **AutoMapper** cho mapping models
-- **Swagger** cho API documentation
+### 🔒 Phân quyền thông minh
+- Mỗi role có quyền truy cập khác nhau
+- UI tự động ẩn/hiện các chức năng theo role
+- Backend validation cho tất cả API calls
+
+### 📱 UX/UI hiện đại
+- Material Design 3
+- Dark/Light theme support
+- Responsive design
+- Loading states và error handling
+
+### 🖼️ Quản lý ảnh
+- Upload ảnh từ gallery/camera
+- Lưu URL để load lại
+- Optimized image loading với Coil
+- Placeholder khi chưa có ảnh
+
+### 🔄 State Management
+- Single source of truth
+- Reactive UI updates
+- Error handling và retry logic
+- Offline support (cached data)
 
 ## Troubleshooting
 
-### Lỗi Backend
-1. **".NET SDK not found"**: 
-   - Cài đặt .NET 8.0 SDK từ: https://dotnet.microsoft.com/download/dotnet/8.0
-   - Restart terminal sau khi cài đặt
-   - Kiểm tra: `dotnet --version`
+### Lỗi kết nối backend
+1. Kiểm tra backend có đang chạy không
+2. Kiểm tra URL trong `AppModule.kt`
+3. Kiểm tra network permissions
 
-2. **Database errors**: 
-   - Kiểm tra SQL Server đang chạy
-   - Cập nhật connection string trong `appsettings.json`
-   - Chạy script SQL trong `dataCarmanager.sql`
+### Lỗi upload ảnh
+1. Kiểm tra storage permissions
+2. Kiểm tra camera permissions
+3. Kiểm tra backend image upload endpoint
 
-3. **Port conflicts**: Nếu port 5274 đã được sử dụng, sửa trong `launchSettings.json`
+### Lỗi authentication
+1. Kiểm tra JWT token
+2. Kiểm tra user credentials
+3. Kiểm tra backend authentication endpoint
 
-### Lỗi Android App
-1. **Lỗi kết nối API**: 
-   - Đảm bảo backend đang chạy tại `http://localhost:5274`
-   - Kiểm tra network security config đã được thêm
-   - Với emulator, API URL phải là `http://10.0.2.2:5274`
+## Đóng góp
 
-2. **Authentication issues**: 
-   - Kiểm tra JWT configuration trong appsettings.json
-   - Đảm bảo tài khoản test có trong database
+1. Fork project
+2. Tạo feature branch
+3. Commit changes
+4. Push to branch
+5. Tạo Pull Request
 
-3. **Build errors**: 
-   - Sync project trong Android Studio
-   - Clean and rebuild project
+## License
 
-## Yêu cầu hệ thống
-
-- **Android**: API level 24+ (Android 7.0+)
-- **.NET**: .NET 8.0+
-- **Database**: SQL Server
-- **IDE**: Android Studio, Visual Studio/VS Code 
+MIT License - xem file LICENSE để biết thêm chi tiết. 
