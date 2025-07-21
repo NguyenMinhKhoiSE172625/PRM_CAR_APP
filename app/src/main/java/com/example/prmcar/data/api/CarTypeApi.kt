@@ -8,21 +8,17 @@ import retrofit2.http.*
 
 interface CarTypeApi {
     @GET("api/CarTypes")
-    suspend fun getCarTypes(
-        @Query("search") search: String? = null,
-        @Query("page") page: Int? = null,
-        @Query("pageSize") pageSize: Int? = null
-    ): Response<CarTypesResponse>
+    suspend fun getCarTypes(@Header("Authorization") token: String): Response<CarTypesResponse>
 
     @GET("api/CarTypes/{id}")
-    suspend fun getCarTypeById(@Path("id") id: Int): Response<CarTypeResponse>
+    suspend fun getCarTypeById(@Header("Authorization") token: String, @Path("id") id: Int): Response<CarTypeResponse>
 
     @POST("api/CarTypes")
-    suspend fun createCarType(@Body carType: CarTypeRequest): Response<CarTypeResponse>
+    suspend fun createCarType(@Header("Authorization") token: String, @Body carType: CarTypeRequest): Response<CarTypeResponse>
 
     @PUT("api/CarTypes/{id}")
-    suspend fun updateCarType(@Path("id") id: Int, @Body carType: CarTypeRequest): Response<Unit>
+    suspend fun updateCarType(@Header("Authorization") token: String, @Path("id") id: Int, @Body carType: CarTypeRequest): Response<Unit>
 
     @DELETE("api/CarTypes/{id}")
-    suspend fun deleteCarType(@Path("id") id: Int): Response<Unit>
+    suspend fun deleteCarType(@Header("Authorization") token: String, @Path("id") id: Int): Response<Unit>
 } 

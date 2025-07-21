@@ -6,6 +6,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.ListAlt
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.example.prmcar.data.model.CarResponse
 import com.example.prmcar.presentation.viewmodel.AuthUiState
 import com.example.prmcar.presentation.viewmodel.CarUiState
+import com.example.prmcar.presentation.util.formatPrice
 import java.text.NumberFormat
 import java.util.*
 
@@ -29,7 +33,10 @@ fun CarListScreen(
     onAddCarClick: () -> Unit,
     onRefresh: () -> Unit,
     onLogout: () -> Unit,
-    onSearch: (String) -> Unit
+    onSearch: (String) -> Unit,
+    onCarTypeManageClick: () -> Unit,
+    onTransactionManageClick: () -> Unit,
+    onUserManageClick: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
@@ -51,6 +58,15 @@ fun CarListScreen(
                 }
             },
             actions = {
+                IconButton(onClick = onCarTypeManageClick) {
+                    Icon(Icons.Default.ListAlt, contentDescription = "Manage Car Types")
+                }
+                IconButton(onClick = onTransactionManageClick) {
+                    Icon(Icons.Default.Receipt, contentDescription = "Manage Transactions")
+                }
+                IconButton(onClick = onUserManageClick) {
+                    Icon(Icons.Default.Person, contentDescription = "Manage Users")
+                }
                 IconButton(onClick = onLogout) {
                     Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
                 }
@@ -244,9 +260,4 @@ private fun CarItem(
             }
         }
     }
-}
-
-private fun formatPrice(price: Double): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
-    return formatter.format(price)
 } 

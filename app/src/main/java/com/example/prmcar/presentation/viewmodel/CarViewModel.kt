@@ -1,5 +1,6 @@
 package com.example.prmcar.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.prmcar.data.model.CarRequest
@@ -10,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 
 data class CarUiState(
     val isLoading: Boolean = false,
@@ -25,7 +28,11 @@ class CarViewModel(private val carRepository: CarRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(CarUiState())
     val uiState: StateFlow<CarUiState> = _uiState.asStateFlow()
 
+    private val _carActionSuccess = MutableSharedFlow<Unit>()
+    val carActionSuccess: SharedFlow<Unit> = _carActionSuccess
+
     init {
+        Log.d("VIEWMODEL_LIFECYCLE", "CarViewModel is being initialized!")
         loadCars()
         loadCarTypes()
     }
@@ -120,6 +127,7 @@ class CarViewModel(private val carRepository: CarRepository) : ViewModel() {
                     _uiState.value = _uiState.value.copy(isLoading = false)
                     // Refresh the cars list
                     loadCars()
+                    _carActionSuccess.emit(Unit)
                 }
                 .onFailure { exception ->
                     _uiState.value = _uiState.value.copy(
@@ -132,15 +140,17 @@ class CarViewModel(private val carRepository: CarRepository) : ViewModel() {
 
     fun updateCar(id: Int, car: CarRequest) {
         viewModelScope.launch {
+            Log.d("CAR_DEBUG", "Bắt đầu updateCar: id=$id, car=$car")
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            
             carRepository.updateCar(id, car)
                 .onSuccess {
+                    Log.d("CAR_DEBUG", "UpdateCar thành công")
                     _uiState.value = _uiState.value.copy(isLoading = false)
-                    // Refresh the cars list
                     loadCars()
+                    _carActionSuccess.emit(Unit)
                 }
                 .onFailure { exception ->
+                    Log.d("CAR_DEBUG", "UpdateCar thất bại: ${exception.message}")
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         errorMessage = exception.message ?: "Failed to update car"

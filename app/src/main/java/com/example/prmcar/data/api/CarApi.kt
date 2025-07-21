@@ -9,6 +9,7 @@ import retrofit2.http.*
 interface CarApi {
     @GET("api/Cars")
     suspend fun getCars(
+        @Header("Authorization") token: String,
         @Query("search") search: String? = null,
         @Query("sortBy") sortBy: String? = null,
         @Query("page") page: Int? = null,
@@ -24,14 +25,27 @@ interface CarApi {
     ): Response<CarsResponse>
 
     @GET("api/Cars/{id}")
-    suspend fun getCarById(@Path("id") id: Int): Response<CarResponse>
+    suspend fun getCarById(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Response<CarResponse>
 
     @POST("api/Cars")
-    suspend fun createCar(@Body car: CarRequest): Response<CarResponse>
+    suspend fun createCar(
+        @Header("Authorization") token: String,
+        @Body car: CarRequest
+    ): Response<CarResponse>
 
     @PUT("api/Cars/{id}")
-    suspend fun updateCar(@Path("id") id: Int, @Body car: CarRequest): Response<Unit>
+    suspend fun updateCar(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int,
+        @Body car: CarRequest
+    ): Response<Unit>
 
     @DELETE("api/Cars/{id}")
-    suspend fun deleteCar(@Path("id") id: Int): Response<Unit>
+    suspend fun deleteCar(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Response<Unit>
 } 

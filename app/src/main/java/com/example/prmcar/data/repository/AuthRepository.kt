@@ -26,7 +26,8 @@ class AuthRepository(private val tokenManager: TokenManager) {
                     Result.failure(Exception("Empty response body"))
                 }
             } else {
-                Result.failure(Exception("Login failed: ${response.message()}"))
+                val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                Result.failure(Exception("Login failed: ${response.message()} - $errorMsg"))
             }
         } catch (e: Exception) {
             Result.failure(e)

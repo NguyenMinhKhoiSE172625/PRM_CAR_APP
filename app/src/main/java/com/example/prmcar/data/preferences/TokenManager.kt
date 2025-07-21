@@ -36,11 +36,9 @@ class TokenManager(private val context: Context) {
         }
     }
 
-    // Get token (blocking call for Retrofit interceptor)
-    fun getToken(): String? {
-        return runBlocking {
-            context.dataStore.data.first()[ACCESS_TOKEN_KEY]
-        }
+    // *** NEW: Asynchronous function to get token ***
+    suspend fun getToken(): String? {
+        return context.dataStore.data.first()[ACCESS_TOKEN_KEY]
     }
 
     // Get token as Flow
@@ -76,5 +74,12 @@ class TokenManager(private val context: Context) {
         return context.dataStore.data.map { preferences ->
             preferences[ACCESS_TOKEN_KEY] != null
         }
+    }
+
+    fun getTokenWithBearer(): String? {
+        val token = runBlocking {
+            context.dataStore.data.first()[ACCESS_TOKEN_KEY]
+        }
+        return token?.let { "Bearer $it" }
     }
 } 
