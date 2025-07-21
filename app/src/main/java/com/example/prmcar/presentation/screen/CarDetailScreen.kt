@@ -56,9 +56,11 @@ fun CarDetailScreen(
                 }
             },
             actions = {
-                selectedCar?.let { car ->
-                    IconButton(onClick = { /* TODO: Implement edit logic */ }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                if (authUiState.userType == "Admin" || authUiState.userType == "Seller") {
+                    selectedCar?.let { car ->
+                        IconButton(onClick = { /* TODO: Implement edit logic */ }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit")
+                        }
                     }
                 }
             }

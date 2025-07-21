@@ -139,14 +139,16 @@ fun CarListScreen(
                 )
             }
 
-            // Floating Action Button - Hiển thị cho tất cả user đăng nhập
-            FloatingActionButton(
-                onClick = onAddCarClick,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Car")
+            // Floating Action Button - Chỉ hiển thị cho Admin và Seller
+            if (authUiState.userType == "Admin" || authUiState.userType == "Seller") {
+                FloatingActionButton(
+                    onClick = onAddCarClick,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Car")
+                }
             }
         }
     }
