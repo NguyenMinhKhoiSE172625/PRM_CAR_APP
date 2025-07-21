@@ -26,10 +26,6 @@ object AppModule {
     fun createCarViewModel(context: Context): CarViewModel {
         val tokenManager = TokenManager(context)
         val carRepository = CarRepository(tokenManager)
-        // ImageUploadService không cần token
-        val retrofit = ApiClient.createRetrofit(tokenManager)
-        val imageUploadService = retrofit.create(ImageUploadService::class.java)
-        val imageUploadManager = ImageUploadManager(imageUploadService)
-        return CarViewModel(carRepository, imageUploadManager)
+        return CarViewModel(carRepository)
     }
 } 

@@ -127,7 +127,15 @@ fun UserListScreen(
             initialRegDate = "",
             onConfirm = { username, password, fullName, email, phone, address, regDate ->
                 userViewModel.createUser(
-                    UserRequest(username, password, fullName, email, phone, address, regDate)
+                    UserRequest(
+                        username.orEmpty(),
+                        password.orEmpty(),
+                        fullName.orEmpty(),
+                        email.orEmpty(),
+                        phone,
+                        address,
+                        regDate
+                    )
                 )
                 showAddDialog = false
             },
@@ -150,7 +158,15 @@ fun UserListScreen(
             onConfirm = { username, password, fullName, email, phone, address, regDate ->
                 userViewModel.updateUser(
                     editId,
-                    UserRequest(username, password, fullName, email, phone, address, regDate)
+                    UserRequest(
+                        username.orEmpty(),
+                        password.orEmpty(),
+                        fullName.orEmpty(),
+                        email.orEmpty(),
+                        phone,
+                        address,
+                        regDate
+                    )
                 )
                 showEditDialog = false to null
             },

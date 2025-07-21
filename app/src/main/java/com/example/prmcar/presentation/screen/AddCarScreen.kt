@@ -117,7 +117,7 @@ fun AddCarScreen(
                         // Hiển thị ảnh đã upload
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(imageUrl ?: "")
+                                .data(imageUrl)
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "Car Image",
