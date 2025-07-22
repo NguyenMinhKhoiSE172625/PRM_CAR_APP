@@ -27,6 +27,8 @@ import com.example.prmcar.presentation.screen.TransactionListScreen
 import com.example.prmcar.presentation.viewmodel.TransactionViewModel
 import com.example.prmcar.presentation.screen.UserListScreen
 import com.example.prmcar.presentation.viewmodel.UserViewModel
+import com.example.prmcar.presentation.screen.CartScreen
+import com.example.prmcar.presentation.viewmodel.CartViewModel
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
@@ -60,6 +62,7 @@ fun AppNavigation(
     val carTypeViewModel: CarTypeViewModel = viewModel { CarTypeViewModel(carTypeRepository) }
     val transactionViewModel: TransactionViewModel = viewModel { TransactionViewModel(transactionRepository) }
     val userViewModel: UserViewModel = viewModel { UserViewModel(userRepository) }
+    val cartViewModel: CartViewModel = viewModel { CartViewModel() }
     
     val authUiState by authViewModel.uiState.collectAsState()
     val carUiState by carViewModel.uiState.collectAsState()
@@ -124,6 +127,20 @@ fun AppNavigation(
                 },
                 onUserManageClick = {
                     navController.navigate(Screen.UserList.route)
+                },
+                cartViewModel = cartViewModel,
+                onCartClick = {
+                    navController.navigate("cart")
+                }
+            )
+        }
+
+        composable("cart") {
+            CartScreen(
+                cartViewModel = cartViewModel,
+                onCheckout = { _, _ -> },
+                onNavigateHome = {
+                    navController.popBackStack(Screen.CarList.route, inclusive = false)
                 }
             )
         }
