@@ -23,16 +23,36 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(UserUiState())
     val uiState: StateFlow<UserUiState> = _uiState.asStateFlow()
 
-    fun loadUsers() {
+    fun loadUsers(userType: String? = null) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, isActionSuccess = false)
-            userRepository.getUsers()
+            userRepository.getUsers(userType)
                 .onSuccess { users ->
                     _uiState.value = _uiState.value.copy(isLoading = false, users = users, errorMessage = null)
                 }
                 .onFailure { exception ->
                     _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = exception.message)
                 }
+        }
+    }
+
+    fun loadBuyersAndSellers() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, isActionSuccess = false)
+
+            // Load both Buyers and Sellers
+            val buyersResult = userRepository.getUsers("Buyer")
+            val sellersResult = userRepository.getUsers("Seller")
+
+            if (buyersResult.isSuccess && sellersResult.isSuccess) {
+                val buyers = buyersResult.getOrNull() ?: emptyList()
+                val sellers = sellersResult.getOrNull() ?: emptyList()
+                val combinedUsers = buyers + sellers
+                _uiState.value = _uiState.value.copy(isLoading = false, users = combinedUsers, errorMessage = null)
+            } else {
+                val error = buyersResult.exceptionOrNull()?.message ?: sellersResult.exceptionOrNull()?.message
+                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = error)
+            }
         }
     }
 
@@ -55,7 +75,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
             userRepository.createUser(user)
                 .onSuccess {
                     _uiState.value = _uiState.value.copy(isLoading = false, isActionSuccess = true)
-                    loadUsers()
+                    loadBuyersAndSellers()
                 }
                 .onFailure { exception ->
                     _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = exception.message)
@@ -69,7 +89,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
             userRepository.updateUser(id, user)
                 .onSuccess {
                     _uiState.value = _uiState.value.copy(isLoading = false, isActionSuccess = true)
-                    loadUsers()
+                    loadBuyersAndSellers()
                 }
                 .onFailure { exception ->
                     _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = exception.message)
@@ -83,7 +103,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
             userRepository.deleteUser(id)
                 .onSuccess {
                     _uiState.value = _uiState.value.copy(isLoading = false, isActionSuccess = true)
-                    loadUsers()
+                    loadBuyersAndSellers()
                 }
                 .onFailure { exception ->
                     _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = exception.message)

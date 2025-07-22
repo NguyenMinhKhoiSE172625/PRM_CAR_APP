@@ -14,6 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.prmcar.data.model.UserRequest
 import com.example.prmcar.presentation.viewmodel.UserUiState
 import com.example.prmcar.presentation.viewmodel.UserViewModel
@@ -36,7 +39,7 @@ fun UserListScreen(
 
     LaunchedEffect(userType, currentUserId) {
         if (userType == "Admin") {
-            userViewModel.loadUsers()
+            userViewModel.loadBuyersAndSellers() // Load only Buyers and Sellers
         } else if (currentUserId != null) {
             Log.d("USER_DEBUG", "Gọi getUserById với id = $currentUserId")
             userViewModel.getUserById(currentUserId)
@@ -64,11 +67,49 @@ fun UserListScreen(
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             Text("userType: $userType, currentUserId: $currentUserId", style = MaterialTheme.typography.bodySmall)
+
+            // Filter buttons for Admin
+            if (userType == "Admin") {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { userViewModel.loadBuyersAndSellers() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("All (Buyers & Sellers)")
+                    }
+                    Button(
+                        onClick = { userViewModel.loadUsers("Buyer") },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Buyers Only")
+                    }
+                    Button(
+                        onClick = { userViewModel.loadUsers("Seller") },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Sellers Only")
+                    }
+                }
+            }
+
             if (userUiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             } else if (userType == "Admin") {
+                // Display user count
+                Text(
+                    text = "Total Users: ${userUiState.users.size}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    fontWeight = FontWeight.Medium
+                )
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
@@ -104,6 +145,23 @@ fun UserListScreen(
                                         text = user.email ?: "",
                                         style = MaterialTheme.typography.bodySmall
                                     )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    // Role badge
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                color = if (user.userType == "Buyer") Color(0xFF4CAF50) else Color(0xFF2196F3),
+                                                shape = RoundedCornerShape(12.dp)
+                                            )
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = user.userType,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
                                 }
                                 if (userType == "Admin") {
                                     IconButton(onClick = { showEditDialog = true to user.userId }) {

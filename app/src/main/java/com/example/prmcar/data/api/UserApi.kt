@@ -8,7 +8,10 @@ import retrofit2.http.*
 
 interface UserApi {
     @GET("api/Users")
-    suspend fun getUsers(@Header("Authorization") token: String): Response<UserListResponse>
+    suspend fun getUsers(
+        @Header("Authorization") token: String,
+        @Query("userType") userType: String? = null
+    ): Response<UserListResponse>
 
     @GET("api/Users/{id}")
     suspend fun getUserById(@Header("Authorization") token: String, @Path("id") id: Int): Response<UserResponse>

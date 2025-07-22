@@ -119,13 +119,14 @@ class CarRepository(private val tokenManager: TokenManager) {
         return try {
             val authToken = getAuthToken()
             val response = carApi.deleteCar(token = authToken, id = id)
-            
+            Log.d("CAR_DEBUG", "DeleteCar response: isSuccessful=${response.isSuccessful}, code=${response.code()}, errorBody=${response.errorBody()?.string()}")
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to delete car: ${response.message()}"))
+                Result.failure(Exception("Failed to delete car: ${response.message()} - ${response.errorBody()?.string()}"))
             }
         } catch (e: Exception) {
+            Log.e("REPO_ERROR", "Exception in deleteCar", e)
             Result.failure(e)
         }
     }

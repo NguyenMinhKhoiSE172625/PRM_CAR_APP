@@ -131,6 +131,12 @@ fun AppNavigation(
                 cartViewModel = cartViewModel,
                 onCartClick = {
                     navController.navigate("cart")
+                },
+                onDeleteCar = { carId ->
+                    carViewModel.deleteCar(carId)
+                },
+                onEditCar = { carId ->
+                    navController.navigate(Screen.EditCar.createRoute(carId))
                 }
             )
         }

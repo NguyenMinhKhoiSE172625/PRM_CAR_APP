@@ -49,7 +49,9 @@ fun CarListScreen(
     onTransactionManageClick: () -> Unit,
     onUserManageClick: () -> Unit,
     cartViewModel: CartViewModel = viewModel(),
-    onCartClick: () -> Unit // callback sang CartScreen
+    onCartClick: () -> Unit, // callback sang CartScreen
+    onDeleteCar: (Int) -> Unit, // callback để xóa car
+    onEditCar: (Int) -> Unit // callback để edit car
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -146,6 +148,8 @@ fun CarListScreen(
                                     onClick = { onCarClick(car.carId) },
                                     userType = authUiState.userType,
                                     currentUserId = authUiState.userId,
+                                    onEdit = { carId -> onEditCar(carId) },
+                                    onDelete = { carId -> onDeleteCar(carId) },
                                     onAddToCart = { carResp ->
                                         if (authUiState.userType == "Buyer") {
                                             cartViewModel.addToCart(

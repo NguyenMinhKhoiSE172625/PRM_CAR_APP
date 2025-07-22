@@ -19,6 +19,7 @@ import com.example.prmcar.presentation.viewmodel.CarViewModel
 import com.example.prmcar.presentation.util.formatPrice
 import java.text.NumberFormat
 import java.util.*
+import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +51,7 @@ fun CarDetailScreen(
                             Icon(Icons.Default.Edit, contentDescription = "Edit Car")
                         }
                         IconButton(onClick = {
+                            Log.d("CAR_DEBUG", "Bấm nút Delete carId=$carId, userType=$userType")
                             carViewModel.deleteCar(carId)
                             onNavigateBack()
                         }) {

@@ -14,10 +14,10 @@ class UserRepository(private val tokenManager: TokenManager) {
         return "Bearer ${token ?: throw IllegalStateException("Auth Token not found")}" 
     }
 
-    suspend fun getUsers(): Result<List<UserResponse>> {
+    suspend fun getUsers(userType: String? = null): Result<List<UserResponse>> {
         return try {
             val authToken = getAuthToken()
-            val response = userApi.getUsers(authToken)
+            val response = userApi.getUsers(authToken, userType)
             if (response.isSuccessful) {
                 Result.success(response.body()?.items ?: emptyList())
             } else {
