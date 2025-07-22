@@ -5,6 +5,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material.icons.filled.Person
@@ -47,7 +49,7 @@ fun CarListScreen(
         TopAppBar(
             title = { 
                 Column {
-                    Text("PRM Car Management")
+                    Text("HỆ THỐNG QUẢN LÍ XE")
                     authUiState.userEmail?.let { email ->
                         Text(
                             text = email,
@@ -130,7 +132,9 @@ fun CarListScreen(
                         items(carUiState.cars) { car ->
                             CarItem(
                                 car = car,
-                                onClick = { onCarClick(car.carId) }
+                                onClick = { onCarClick(car.carId) },
+                                userType = authUiState.userType,
+                                currentUserId = authUiState.userId
                             )
                         }
                     }
@@ -156,13 +160,15 @@ fun CarListScreen(
             }
 
             // Floating Action Button
-            FloatingActionButton(
-                onClick = onAddCarClick,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Car")
+            if (authUiState.userType == "Admin" || authUiState.userType == "Seller") {
+                FloatingActionButton(
+                    onClick = onAddCarClick,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Car")
+                }
             }
         }
     }
@@ -172,7 +178,11 @@ fun CarListScreen(
 @Composable
 private fun CarItem(
     car: CarResponse,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    userType: String?,
+    currentUserId: Int?,
+    onEdit: ((Int) -> Unit)? = null,
+    onDelete: ((Int) -> Unit)? = null
 ) {
     Card(
         onClick = onClick,
@@ -206,6 +216,19 @@ private fun CarItem(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
+                // Nút Sửa/Xóa
+                if (userType == "Admin") {
+                    IconButton(onClick = { onEdit?.invoke(car.carId) }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Car")
+                    }
+                    IconButton(onClick = { onDelete?.invoke(car.carId) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete Car")
+                    }
+                } else if (userType == "Seller" && car.sellerId == currentUserId) {
+                    IconButton(onClick = { onEdit?.invoke(car.carId) }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Car")
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))

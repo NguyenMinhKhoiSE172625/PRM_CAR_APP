@@ -26,6 +26,19 @@ data class UserLogin(
     val passwordHash: String
 )
 
+data class UserDto(
+    val id: Int,
+    val email: String,
+    val username: String,
+    val role: String
+)
+
 data class LoginResponse(
     val token: String
+)
+
+data class UserListResponse(
+    val pageIndex: Int?,
+    val pageSize: Int?,
+    val items: List<UserResponse>
 ) 

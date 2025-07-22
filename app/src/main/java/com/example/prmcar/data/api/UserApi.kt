@@ -2,12 +2,13 @@ package com.example.prmcar.data.api
 
 import com.example.prmcar.data.model.UserRequest
 import com.example.prmcar.data.model.UserResponse
+import com.example.prmcar.data.model.UserListResponse
 import retrofit2.Response
 import retrofit2.http.*
 
 interface UserApi {
     @GET("api/Users")
-    suspend fun getUsers(@Header("Authorization") token: String): Response<List<UserResponse>>
+    suspend fun getUsers(@Header("Authorization") token: String): Response<UserListResponse>
 
     @GET("api/Users/{id}")
     suspend fun getUserById(@Header("Authorization") token: String, @Path("id") id: Int): Response<UserResponse>

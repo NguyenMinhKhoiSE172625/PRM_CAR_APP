@@ -19,7 +19,7 @@ class UserRepository(private val tokenManager: TokenManager) {
             val authToken = getAuthToken()
             val response = userApi.getUsers(authToken)
             if (response.isSuccessful) {
-                Result.success(response.body() ?: emptyList())
+                Result.success(response.body()?.items ?: emptyList())
             } else {
                 Result.failure(Exception("Failed to get users: ${response.message()}"))
             }

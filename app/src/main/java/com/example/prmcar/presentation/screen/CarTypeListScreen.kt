@@ -26,7 +26,8 @@ fun CarTypeListScreen(
     carTypeUiState: CarTypeUiState,
     carTypeViewModel: CarTypeViewModel,
     onEditCarType: (Int) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    userType: String?
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf<Pair<Boolean, Int?>>(false to null) }
@@ -44,8 +45,10 @@ fun CarTypeListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Car Type")
+            if (userType == "Admin") {
+                FloatingActionButton(onClick = { showAddDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Car Type")
+                }
             }
         }
     ) { padding ->
@@ -87,11 +90,13 @@ fun CarTypeListScreen(
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                 }
-                                IconButton(onClick = { showEditDialog = true to carType.carTypeId }) {
-                                    Icon(Icons.Default.Edit, contentDescription = "Edit")
-                                }
-                                IconButton(onClick = { carTypeViewModel.deleteCarType(carType.carTypeId) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+                                if (userType == "Admin") {
+                                    IconButton(onClick = { showEditDialog = true to carType.carTypeId }) {
+                                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                                    }
+                                    IconButton(onClick = { carTypeViewModel.deleteCarType(carType.carTypeId) }) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Delete")
+                                    }
                                 }
                             }
                         }

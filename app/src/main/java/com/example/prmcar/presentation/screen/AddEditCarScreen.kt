@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalContext
@@ -80,6 +81,27 @@ fun AddEditCarScreen(
     LaunchedEffect(carViewModel) {
         carViewModel.carActionSuccess.collectLatest {
             onNavigateBack()
+        }
+    }
+
+    // Hiển thị lỗi nếu có
+    carUiState.errorMessage?.let { error ->
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(onClick = { carViewModel.clearError() }) {
+                        Text("Đóng")
+                    }
+                }
+            }
         }
     }
 

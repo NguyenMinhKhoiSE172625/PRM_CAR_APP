@@ -140,7 +140,9 @@ fun AppNavigation(
                 onNavigateBack = { navController.popBackStack() },
                 onEditClick = {
                     navController.navigate(Screen.EditCar.createRoute(it))
-                }
+                },
+                userType = authUiState.userType,
+                currentUserId = authUiState.userId
             )
         }
         
@@ -172,7 +174,8 @@ fun AppNavigation(
                 carTypeUiState = carTypeUiState,
                 carTypeViewModel = carTypeViewModel,
                 onEditCarType = { /* Có thể mở dialog hoặc màn hình edit riêng nếu muốn */ },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                userType = authUiState.userType
             )
         }
 
@@ -182,17 +185,21 @@ fun AppNavigation(
                 transactionUiState = transactionUiState,
                 transactionViewModel = transactionViewModel,
                 onEditTransaction = { /* Có thể mở dialog hoặc màn hình edit riêng nếu muốn */ },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                userType = authUiState.userType,
+                currentUserId = authUiState.userId,
+                cars = carUiState.cars
             )
         }
 
         composable(Screen.UserList.route) {
-            LaunchedEffect(Unit) { userViewModel.loadUsers() }
             UserListScreen(
                 userUiState = userUiState,
                 userViewModel = userViewModel,
                 onEditUser = { /* Có thể mở dialog hoặc màn hình edit riêng nếu muốn */ },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                userType = authUiState.userType,
+                currentUserId = authUiState.userId
             )
         }
     }

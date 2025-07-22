@@ -83,18 +83,19 @@ class CarRepository(private val tokenManager: TokenManager) {
         return try {
             val authToken = getAuthToken()
             val response = carApi.createCar(token = authToken, car = car)
-            
+            Log.d("CAR_DEBUG", "API response: isSuccessful=${response.isSuccessful}, code=${response.code()}, body=${response.body()}, errorBody=${response.errorBody()?.string()}")
             if (response.isSuccessful) {
                 val createdCar = response.body()
                 if (createdCar != null) {
                     Result.success(createdCar)
                 } else {
-                    Result.failure(Exception("Failed to create car"))
+                    Result.failure(Exception("Failed to create car: body is null"))
                 }
             } else {
-                Result.failure(Exception("Failed to create car: ${response.message()}"))
+                Result.failure(Exception("Failed to create car: ${response.message()} - ${response.errorBody()?.string()}"))
             }
         } catch (e: Exception) {
+            Log.e("REPO_ERROR", "Exception in createCar", e)
             Result.failure(e)
         }
     }

@@ -5,10 +5,20 @@ import com.example.prmcar.data.api.AuthApi
 import com.example.prmcar.data.model.UserLogin
 import com.example.prmcar.data.preferences.TokenManager
 import kotlinx.coroutines.flow.Flow
+import com.auth0.android.jwt.JWT
 
 class AuthRepository(private val tokenManager: TokenManager) {
     
     private val authApi: AuthApi = ApiClient.createAuthApi()
+
+    private fun decodeToken(token: String): Pair<String?, Int?> {
+        val jwt = JWT(token)
+        val role = jwt.getClaim("role").asString()
+            ?: jwt.getClaim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role").asString()
+        val userId = jwt.getClaim("id").asInt()
+            ?: jwt.getClaim("nameid").asInt()
+        return Pair(role, userId)
+    }
 
     suspend fun login(email: String, password: String): Result<String> {
         return try {
@@ -18,12 +28,13 @@ class AuthRepository(private val tokenManager: TokenManager) {
             if (response.isSuccessful) {
                 val loginResponse = response.body()
                 if (loginResponse != null) {
-                    // Save token and user info
                     tokenManager.saveToken(loginResponse.token)
-                    tokenManager.saveUserInfo(email, "User") // Default user type
+                    val (role, userId) = decodeToken(loginResponse.token)
+                    if (role != null) tokenManager.saveUserInfo(email, role)
+                    if (userId != null) tokenManager.saveUserId(userId)
                     Result.success(loginResponse.token)
                 } else {
-                    Result.failure(Exception("Empty response body"))
+                    Result.failure(Exception("Empty response body or login failed"))
                 }
             } else {
                 val errorMsg = response.errorBody()?.string() ?: "Unknown error"
@@ -48,5 +59,9 @@ class AuthRepository(private val tokenManager: TokenManager) {
 
     fun getUserType(): Flow<String?> {
         return tokenManager.getUserTypeFlow()
+    }
+
+    fun getUserId(): Flow<Int?> {
+        return tokenManager.getUserIdFlow()
     }
 } 

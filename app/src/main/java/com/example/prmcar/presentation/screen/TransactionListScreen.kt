@@ -18,6 +18,7 @@ import com.example.prmcar.data.model.TransactionRequest
 import com.example.prmcar.presentation.viewmodel.TransactionUiState
 import com.example.prmcar.presentation.viewmodel.TransactionViewModel
 import androidx.compose.foundation.clickable
+import com.example.prmcar.data.model.CarResponse
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,7 +26,10 @@ fun TransactionListScreen(
     transactionUiState: TransactionUiState,
     transactionViewModel: TransactionViewModel,
     onEditTransaction: (Int) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    userType: String?,
+    currentUserId: Int?,
+    cars: List<CarResponse>
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf<Pair<Boolean, Int?>>(false to null) }
@@ -43,8 +47,10 @@ fun TransactionListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Transaction")
+            if (userType == "Admin" || userType == "Buyer") {
+                FloatingActionButton(onClick = { showAddDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Transaction")
+                }
             }
         }
     ) { padding ->
@@ -90,11 +96,20 @@ fun TransactionListScreen(
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                 }
-                                IconButton(onClick = { showEditDialog = true to transaction.transactionId }) {
-                                    Icon(Icons.Default.Edit, contentDescription = "Edit")
-                                }
-                                IconButton(onClick = { transactionViewModel.deleteTransaction(transaction.transactionId) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+                                if (userType == "Admin") {
+                                    IconButton(onClick = { showEditDialog = true to transaction.transactionId }) {
+                                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                                    }
+                                    IconButton(onClick = { transactionViewModel.deleteTransaction(transaction.transactionId) }) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Delete")
+                                    }
+                                } else if (userType == "Seller" && currentUserId != null) {
+                                    val sellerId = cars.find { it.carId == transaction.carId }?.sellerId
+                                    if (sellerId == currentUserId) {
+                                        IconButton(onClick = { showEditDialog = true to transaction.transactionId }) {
+                                            Icon(Icons.Default.Edit, contentDescription = "Edit Status")
+                                        }
+                                    }
                                 }
                             }
                         }

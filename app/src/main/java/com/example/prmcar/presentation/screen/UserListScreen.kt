@@ -18,6 +18,7 @@ import com.example.prmcar.data.model.UserRequest
 import com.example.prmcar.presentation.viewmodel.UserUiState
 import com.example.prmcar.presentation.viewmodel.UserViewModel
 import androidx.compose.foundation.clickable
+import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,11 +26,22 @@ fun UserListScreen(
     userUiState: UserUiState,
     userViewModel: UserViewModel,
     onEditUser: (Int) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    userType: String?,
+    currentUserId: Int?
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf<Pair<Boolean, Int?>>(false to null) }
     var showDetailDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(userType, currentUserId) {
+        if (userType == "Admin") {
+            userViewModel.loadUsers()
+        } else if (currentUserId != null) {
+            Log.d("USER_DEBUG", "Gọi getUserById với id = $currentUserId")
+            userViewModel.getUserById(currentUserId)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -43,17 +55,20 @@ fun UserListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add User")
+            if (userType == "Admin") {
+                FloatingActionButton(onClick = { showAddDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Add User")
+                }
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            Text("userType: $userType, currentUserId: $currentUserId", style = MaterialTheme.typography.bodySmall)
             if (userUiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-            } else {
+            } else if (userType == "Admin") {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
@@ -90,12 +105,59 @@ fun UserListScreen(
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                 }
-                                IconButton(onClick = { showEditDialog = true to user.userId }) {
-                                    Icon(Icons.Default.Edit, contentDescription = "Edit")
+                                if (userType == "Admin") {
+                                    IconButton(onClick = { showEditDialog = true to user.userId }) {
+                                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                                    }
+                                    IconButton(onClick = { userViewModel.deleteUser(user.userId) }) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Delete")
+                                    }
                                 }
-                                IconButton(onClick = { userViewModel.deleteUser(user.userId) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Buyer/Seller: chỉ hiển thị thông tin cá nhân
+                if (userUiState.errorMessage != null) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = userUiState.errorMessage ?: "",
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                TextButton(onClick = { userViewModel.clearError() }) {
+                                    Text("Đóng")
                                 }
+                            }
+                        }
+                    }
+                }
+                userUiState.selectedUser?.let { user ->
+                    Log.d("USER_DEBUG", "selectedUser = $user")
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        elevation = CardDefaults.cardElevation(2.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Thông tin cá nhân", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Text("Username: ${user.username}")
+                            Text("Full Name: ${user.fullName}")
+                            Text("Email: ${user.email}")
+                            Text("Phone: ${user.phoneNumber ?: ""}")
+                            Text("Address: ${user.address ?: ""}")
+                            Text("User Type: ${user.userType}")
+                            Text("Registration Date: ${user.registrationDate ?: ""}")
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(onClick = { showEditDialog = true to user.userId }) {
+                                Text("Sửa thông tin cá nhân")
                             }
                         }
                     }
@@ -104,8 +166,8 @@ fun UserListScreen(
         }
     }
 
-    // Detail Dialog
-    if (showDetailDialog && userUiState.selectedUser != null) {
+    // Detail Dialog (chỉ cho Admin)
+    if (showDetailDialog && userUiState.selectedUser != null && userType == "Admin") {
         UserDetailDialog(
             user = userUiState.selectedUser,
             onDismiss = {
@@ -114,8 +176,8 @@ fun UserListScreen(
             }
         )
     }
-    // Add Dialog
-    if (showAddDialog) {
+    // Add Dialog (chỉ cho Admin)
+    if (showAddDialog && userType == "Admin") {
         UserDialog(
             title = "Add User",
             initialUsername = "",
@@ -142,14 +204,14 @@ fun UserListScreen(
             onDismiss = { showAddDialog = false }
         )
     }
-    // Edit Dialog
+    // Edit Dialog (cho cả Admin và Buyer/Seller sửa thông tin cá nhân)
     if (showEditDialog.first && showEditDialog.second != null) {
         val editId = showEditDialog.second!!
-        val editUser = userUiState.users.find { it.userId == editId }
+        val editUser = if (userType == "Admin") userUiState.users.find { it.userId == editId } else userUiState.selectedUser
         UserDialog(
-            title = "Edit User",
+            title = if (userType == "Admin") "Edit User" else "Sửa thông tin cá nhân",
             initialUsername = editUser?.username.orEmpty(),
-            initialPassword = "", // Không show password cũ
+            initialPassword = "",
             initialFullName = editUser?.fullName.orEmpty(),
             initialEmail = editUser?.email.orEmpty(),
             initialPhone = editUser?.phoneNumber.orEmpty(),

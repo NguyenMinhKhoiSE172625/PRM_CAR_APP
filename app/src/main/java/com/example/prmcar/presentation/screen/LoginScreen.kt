@@ -48,7 +48,7 @@ fun LoginScreen(
     ) {
         // App Title
         Text(
-            text = "PRM CAR",
+            text = "HỆ THỐNG QUẢN LÍ XE",
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,

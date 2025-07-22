@@ -27,7 +27,9 @@ fun CarDetailScreen(
     selectedCar: CarResponse?,
     carId: Int,
     onNavigateBack: () -> Unit,
-    onEditClick: (Int) -> Unit
+    onEditClick: (Int) -> Unit,
+    userType: String?,
+    currentUserId: Int?
 ) {
     LaunchedEffect(key1 = carId) {
         carViewModel.getCarById(carId)
@@ -43,15 +45,22 @@ fun CarDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onEditClick(carId) }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Car")
+                    if (userType == "Admin") {
+                        IconButton(onClick = { onEditClick(carId) }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Car")
+                        }
+                        IconButton(onClick = {
+                            carViewModel.deleteCar(carId)
+                            onNavigateBack()
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete Car")
+                        }
+                    } else if (userType == "Seller" && selectedCar?.sellerId == currentUserId) {
+                        IconButton(onClick = { onEditClick(carId) }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Car")
+                        }
                     }
-                    IconButton(onClick = {
-                        carViewModel.deleteCar(carId)
-                        onNavigateBack()
-                    }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete Car")
-                    }
+                    // Buyer: không hiện gì
                 }
             )
         }
@@ -61,32 +70,64 @@ fun CarDetailScreen(
                 CircularProgressIndicator()
             }
         } else {
-            Column(
+            Card(
                 modifier = Modifier
                     .padding(padding)
                     .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(4.dp)
             ) {
-                DetailItem("Make", selectedCar.make)
-                DetailItem("Model", selectedCar.model)
-                DetailItem("Year", selectedCar.manufactureYear.toString())
-                DetailItem("Car Type", selectedCar.carTypeName)
-                DetailItem("Color", selectedCar.color)
-                DetailItem("Mileage", selectedCar.mileage?.let { "${NumberFormat.getInstance().format(it)} km" })
-                DetailItem("License Plate", selectedCar.licensePlate)
-                DetailItem("Asking Price", formatPrice(selectedCar.askingPrice))
-                DetailItem("Status", selectedCar.status)
-                DetailItem("Description", selectedCar.description)
+                Column(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(
+                            text = selectedCar.carName,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = formatPrice(selectedCar.askingPrice),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Divider()
+                    DetailRow("Hãng", selectedCar.make)
+                    DetailRow("Dòng xe", selectedCar.model)
+                    DetailRow("Năm sản xuất", selectedCar.manufactureYear.toString())
+                    DetailRow("Loại xe", selectedCar.carTypeName)
+                    DetailRow("Màu sắc", selectedCar.color)
+                    DetailRow("Số km đã đi", selectedCar.mileage?.let { "${NumberFormat.getInstance().format(it)} km" })
+                    DetailRow("Biển số", selectedCar.licensePlate)
+                    DetailRow("Trạng thái", selectedCar.status)
+                    Divider()
+                    Text(
+                        text = "Mô tả:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = selectedCar.description ?: "Không có mô tả",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun DetailItem(label: String, value: String?) {
+private fun DetailRow(label: String, value: String?) {
     if (!value.isNullOrBlank()) {
-        Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,

@@ -13,6 +13,7 @@ data class AuthUiState(
     val isLoggedIn: Boolean = false,
     val userEmail: String? = null,
     val userType: String? = null,
+    val userId: Int? = null,
     val errorMessage: String? = null
 )
 
@@ -41,6 +42,12 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
         viewModelScope.launch {
             authRepository.getUserType().collect { userType ->
                 _uiState.value = _uiState.value.copy(userType = userType)
+            }
+        }
+        
+        viewModelScope.launch {
+            authRepository.getUserId().collect { userId ->
+                _uiState.value = _uiState.value.copy(userId = userId)
             }
         }
     }

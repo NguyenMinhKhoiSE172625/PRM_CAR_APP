@@ -19,6 +19,7 @@ class TokenManager(private val context: Context) {
         private val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
         private val USER_TYPE_KEY = stringPreferencesKey("user_type")
+        private val USER_ID_KEY = stringPreferencesKey("user_id")
     }
 
     // Save token
@@ -33,6 +34,13 @@ class TokenManager(private val context: Context) {
         context.dataStore.edit { preferences ->
             preferences[USER_EMAIL_KEY] = email
             preferences[USER_TYPE_KEY] = userType
+        }
+    }
+
+    // Save userId
+    suspend fun saveUserId(userId: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_ID_KEY] = userId.toString()
         }
     }
 
@@ -60,6 +68,18 @@ class TokenManager(private val context: Context) {
         return context.dataStore.data.map { preferences ->
             preferences[USER_TYPE_KEY]
         }
+    }
+
+    // Get userId as Flow
+    fun getUserIdFlow(): Flow<Int?> {
+        return context.dataStore.data.map { preferences ->
+            preferences[USER_ID_KEY]?.toIntOrNull()
+        }
+    }
+
+    // Get userId (suspend)
+    suspend fun getUserId(): Int? {
+        return context.dataStore.data.first()[USER_ID_KEY]?.toIntOrNull()
     }
 
     // Clear all data (logout)
