@@ -20,6 +20,10 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun CartScreen(
@@ -55,60 +59,86 @@ fun CartScreen(
                     IconButton(onClick = { onNavigateHome?.invoke() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Về trang chủ")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = Color.White
+                )
             )
-        }
+        },
+        containerColor = Color.Transparent
     ) { padding ->
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(16.dp)) {
-            if (cartItems.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Giỏ hàng trống")
-                }
-            } else {
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(cartItems, key = { it.carId }) { item ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            elevation = CardDefaults.cardElevation(2.dp)
-                        ) {
-                            Row(
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(MaterialTheme.colorScheme.background, Color.White)
+                    )
+                )
+        ) {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp)) {
+                if (cartItems.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Giỏ hàng trống", style = MaterialTheme.typography.titleMedium)
+                    }
+                } else {
+                    LazyColumn(modifier = Modifier.weight(1f)) {
+                        items(cartItems, key = { it.carId }) { item ->
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                    .padding(vertical = 6.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                shape = RoundedCornerShape(18.dp),
+                                elevation = CardDefaults.cardElevation(4.dp)
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(item.carName, style = MaterialTheme.typography.titleMedium)
-                                    Text("Số lượng: ${item.quantity}", style = MaterialTheme.typography.bodyMedium)
-                                }
-                                Text(
-                                    text = numberFormat.format(item.price) + " đ",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                IconButton(onClick = { cartViewModel.removeFromCart(item.carId) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Xóa vật phẩm")
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(item.carName, style = MaterialTheme.typography.titleMedium)
+                                        Text("Số lượng: ${item.quantity}", style = MaterialTheme.typography.bodyMedium)
+                                    }
+                                    Text(
+                                        text = numberFormat.format(item.price) + " đ",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    IconButton(
+                                        onClick = { cartViewModel.removeFromCart(item.carId) },
+                                        modifier = Modifier.background(
+                                            color = MaterialTheme.colorScheme.errorContainer,
+                                            shape = RoundedCornerShape(50)
+                                        )
+                                    ) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Xóa vật phẩm", tint = MaterialTheme.colorScheme.error)
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "Tổng tiền: ${numberFormat.format(safeTotal)} VNĐ",
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = { showInvoice = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Thanh toán")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Tổng tiền: ${numberFormat.format(safeTotal)} VNĐ",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { showInvoice = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text("Thanh toán", color = Color.White)
+                    }
                 }
             }
         }
@@ -130,40 +160,64 @@ fun InvoiceScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Về trang chủ")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = Color.White
+                )
             )
-        }
+        },
+        containerColor = Color.Transparent
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Top
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(MaterialTheme.colorScheme.background, Color.White)
+                    )
+                )
         ) {
-            Text("Cảm ơn bạn đã mua hàng!", style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Chi tiết hóa đơn:", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
-                items(cartItems, key = { it.carId }) { item ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("${item.carName} x${item.quantity}", style = MaterialTheme.typography.bodyLarge)
-                        Text(numberFormat.format(item.price * item.quantity) + " đ", style = MaterialTheme.typography.bodyLarge)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Top
+            ) {
+                Text("Cảm ơn bạn đã mua hàng!", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    elevation = CardDefaults.cardElevation(4.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Text("Chi tiết hóa đơn:", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        cartItems.forEach {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("${it.carName} x${it.quantity}", style = MaterialTheme.typography.bodyLarge)
+                                Text(numberFormat.format(it.price * it.quantity) + " đ", style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("Tổng cộng: ${numberFormat.format(totalPrice)} VNĐ", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
                     }
                 }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Tổng cộng: ${numberFormat.format(totalPrice)} VNĐ", style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(
-                onClick = onBack,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Về trang chủ")
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(
+                    onClick = onBack,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Về trang chủ", color = Color.White)
+                }
             }
         }
     }

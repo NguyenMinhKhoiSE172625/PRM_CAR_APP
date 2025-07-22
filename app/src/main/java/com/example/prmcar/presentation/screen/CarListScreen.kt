@@ -34,6 +34,14 @@ import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Badge
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.ColorLens
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CardDefaults
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,8 +69,14 @@ fun CarListScreen(
             // Top App Bar
             TopAppBar(
                 title = {
+                    val title = when (authUiState.userType) {
+                        "Buyer" -> "Khách hàng - Mua xe"
+                        "Seller" -> "Người bán - Quản lý xe"
+                        "Admin" -> "Quản trị viên - Hệ thống"
+                        else -> "HỆ THỐNG QUẢN LÍ XE"
+                    }
                     Column {
-                        Text("HỆ THỐNG QUẢN LÍ XE")
+                        Text(title, style = MaterialTheme.typography.titleLarge)
                         authUiState.userEmail?.let { email ->
                             Text(
                                 text = email,
@@ -231,25 +245,33 @@ private fun CarItem(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(18.dp)
         ) {
-            // Car Name and Make
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = car.carName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.DirectionsCar, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = car.carName,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                     Text(
                         text = "${car.make} ${car.model}",
                         style = MaterialTheme.typography.bodyMedium,
@@ -261,44 +283,34 @@ private fun CarItem(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
-                // Nút Sửa/Xóa
-                if (userType == "Admin") {
-                    IconButton(onClick = { onEdit?.invoke(car.carId) }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Car")
-                    }
-                    IconButton(onClick = { onDelete?.invoke(car.carId) }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete Car")
-                    }
-                } else if (userType == "Seller" && car.sellerId == currentUserId) {
-                    IconButton(onClick = { onEdit?.invoke(car.carId) }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Car")
-                    }
-                }
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Price and Details
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = formatPrice(car.askingPrice),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
-                car.mileage?.let { mileage ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.AttachMoney, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${NumberFormat.getInstance().format(mileage)} km",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = formatPrice(car.askingPrice),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
                     )
                 }
+                car.mileage?.let { mileage ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${NumberFormat.getInstance().format(mileage)} km",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
-
-            // Additional Info
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -306,11 +318,15 @@ private fun CarItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 car.color?.let { color ->
-                    Text(
-                        text = color,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.ColorLens, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = color,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 car.carTypeName?.let { type ->
                     Surface(
@@ -326,14 +342,15 @@ private fun CarItem(
                     }
                 }
             }
-            // Thêm nút Thêm vào giỏ cho Buyer ở dưới cùng
             if (userType == "Buyer") {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = { onAddToCart?.invoke(car) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Thêm vào giỏ hàng")
+                    Text("Thêm vào giỏ hàng", color = Color.White)
                 }
             }
         }
