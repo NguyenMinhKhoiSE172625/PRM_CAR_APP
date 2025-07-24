@@ -6,16 +6,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.prmcar.data.model.CarRequest
 import com.example.prmcar.presentation.viewmodel.CarUiState
 import com.example.prmcar.presentation.viewmodel.CarViewModel
@@ -42,6 +47,7 @@ fun AddEditCarScreen(
     var description by remember { mutableStateOf("") }
     var listingDate by remember { mutableStateOf("") }
     var sellerId by remember { mutableStateOf("") }
+    var image by remember { mutableStateOf("") }
     
     var selectedCarTypeId by remember { mutableStateOf<Int?>(null) }
     var expanded by remember { mutableStateOf(false) }
@@ -49,18 +55,20 @@ fun AddEditCarScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
 
-    // Fetch car details if in edit mode
+    // Fetch car details if in edit mode and load car types
     LaunchedEffect(key1 = carId) {
         if (isEditMode) {
             carViewModel.getCarById(carId!!)
         } else {
             carViewModel.clearSelectedCar()
         }
+        // Đảm bảo car types được load
+        carViewModel.loadCarTypes()
     }
 
     // Populate fields when car details and carTypes are loaded for editing
     LaunchedEffect(carUiState.selectedCar, carUiState.carTypes) {
-        if (isEditMode && carUiState.selectedCar != null && carUiState.carTypes.isNotEmpty()) {
+        if (isEditMode && carUiState.selectedCar != null) {
             val car = carUiState.selectedCar
             carName = car.carName
             make = car.make
@@ -74,6 +82,7 @@ fun AddEditCarScreen(
             selectedCarTypeId = car.carTypeId
             listingDate = car.listingDate ?: ""
             sellerId = car.sellerId?.toString() ?: ""
+            image = car.image ?: ""
         }
     }
 
@@ -105,6 +114,14 @@ fun AddEditCarScreen(
         }
     }
 
+    // Nếu là edit mode và chưa có selectedCar, hiển thị loading
+    if (isEditMode && carUiState.selectedCar == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -133,7 +150,8 @@ fun AddEditCarScreen(
                     description = description,
                     status = "Available",
                     listingDate = if (listingDate.isNotBlank()) listingDate else null,
-                    sellerId = sellerId.toIntOrNull()
+                    sellerId = sellerId.toIntOrNull(),
+                    image = image
                 )
                 if (isEditMode) {
                     carViewModel.updateCar(carId!!, carRequest)
@@ -222,6 +240,73 @@ fun AddEditCarScreen(
                 onValueChange = { sellerId = it },
                 label = { Text("Seller ID") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            // Image section
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    if (image.isNotBlank()) {
+                        // Hiển thị ảnh
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(image)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Car Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        // Placeholder
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = Icons.Default.Camera,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Tap to select image",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    // Upload button
+                    FloatingActionButton(
+                        onClick = {
+                            // TODO: Implement image picker
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Select Image")
+                    }
+                }
+            }
+
+            // Manual URL input (fallback)
+            OutlinedTextField(
+                value = image,
+                onValueChange = { image = it },
+                label = { Text("Image URL (Optional)") },
+                placeholder = { Text("Or paste image URL here") }
             )
         }
     }

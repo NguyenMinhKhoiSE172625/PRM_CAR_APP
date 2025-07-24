@@ -42,6 +42,12 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
+import com.example.prmcar.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -255,6 +261,19 @@ private fun CarItem(
         Column(
             modifier = Modifier.padding(18.dp)
         ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(car.image)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = car.carName,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.toyota_camry),
+                error = painterResource(R.drawable.toyota_camry)
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

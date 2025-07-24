@@ -16,7 +16,7 @@ data class CarResponse(
     val status: String?,
     val listingDate: String?,
     val sellerId: Int?,
-    val imageUrl: String? = null
+    val image: String? = null
 )
 
 data class CarRequest(
@@ -33,7 +33,7 @@ data class CarRequest(
     val status: String?,
     val listingDate: String?,
     val sellerId: Int?,
-    val imageUrl: String? = null
+    val image: String? = null
 )
 
 data class CarsResponse(

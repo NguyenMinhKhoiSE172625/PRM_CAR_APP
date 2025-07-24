@@ -42,11 +42,11 @@ class ImageUploadManager(
             val response = imageUploadService.uploadImage(body, carIdBody)
             
             if (response.isSuccessful) {
-                val imageUrl = response.body()?.imageUrl
-                if (imageUrl != null) {
+                val image = response.body()?.image
+                if (image != null) {
                     // Cập nhật URL ảnh cho xe
-                    imageUploadService.updateCarImage(carId, UpdateImageRequest(imageUrl))
-                    Result.success(imageUrl)
+                    imageUploadService.updateCarImage(carId, UpdateImageRequest(image))
+                    Result.success(image)
                 } else {
                     Result.failure(Exception("Upload failed: No image URL returned"))
                 }

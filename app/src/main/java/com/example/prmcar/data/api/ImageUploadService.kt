@@ -22,10 +22,10 @@ interface ImageUploadService {
 }
 
 data class ImageUploadResponse(
-    val imageUrl: String,
+    val image: String,
     val message: String
 )
 
 data class UpdateImageRequest(
-    val imageUrl: String
+    val image: String
 ) 

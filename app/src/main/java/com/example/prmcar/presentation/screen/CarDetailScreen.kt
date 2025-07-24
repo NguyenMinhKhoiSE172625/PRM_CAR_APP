@@ -19,6 +19,12 @@ import com.example.prmcar.presentation.viewmodel.CarViewModel
 import com.example.prmcar.presentation.util.formatPrice
 import java.text.NumberFormat
 import java.util.*
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
+import com.example.prmcar.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,6 +89,19 @@ fun CarDetailScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(selectedCar?.image)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = selectedCar?.carName,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.toyota_camry),
+                        error = painterResource(R.drawable.toyota_camry)
+                    )
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(
                             text = selectedCar.carName,

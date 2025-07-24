@@ -45,13 +45,13 @@ fun AddCarScreen(
     var description by remember { mutableStateOf("") }
     var selectedCarTypeId by remember { mutableStateOf<Int?>(null) }
     var expanded by remember { mutableStateOf(false) }
-    var imageUrl by remember { mutableStateOf<String?>(null) }
+    var image by remember { mutableStateOf<String?>(null) }
     
     // Image upload launcher
     val imageUploadLauncher = rememberImageUploadLauncher { uri ->
         // TODO: Implement image upload logic
         // For now, just set a placeholder URL
-        imageUrl = "https://example.com/placeholder.jpg"
+        image = "https://example.com/placeholder.jpg"
     }
 
     Column(
@@ -82,7 +82,7 @@ fun AddCarScreen(
                             status = "Available",
                             listingDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
                             sellerId = null,
-                            imageUrl = imageUrl
+                            image = image
                         )
                         onSaveClick(carRequest)
                     },
@@ -113,11 +113,11 @@ fun AddCarScreen(
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    if (!imageUrl.isNullOrBlank()) {
+                    if (!image.isNullOrBlank()) {
                         // Hiển thị ảnh đã upload
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(imageUrl)
+                                .data(image)
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "Car Image",
@@ -320,7 +320,7 @@ fun AddCarScreen(
                         status = "Available",
                         listingDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
                         sellerId = null,
-                        imageUrl = imageUrl
+                        image = image
                     )
                     onSaveClick(carRequest)
                 },

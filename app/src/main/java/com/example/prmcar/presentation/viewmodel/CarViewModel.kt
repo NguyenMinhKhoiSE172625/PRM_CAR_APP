@@ -147,6 +147,8 @@ class CarViewModel(private val carRepository: CarRepository) : ViewModel() {
                     Log.d("CAR_DEBUG", "UpdateCar thành công")
                     _uiState.value = _uiState.value.copy(isLoading = false)
                     loadCars()
+                    // Refresh thông tin chi tiết xe hiện tại để cập nhật ảnh ngay lập tức
+                    getCarById(id)
                     _carActionSuccess.emit(Unit)
                 }
                 .onFailure { exception ->
