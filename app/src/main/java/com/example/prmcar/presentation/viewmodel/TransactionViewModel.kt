@@ -118,12 +118,15 @@ class TransactionViewModel(private val transactionRepository: TransactionReposit
 
     fun purchaseCar(carId: Int, buyerId: Int, price: Double) {
         viewModelScope.launch {
+            println("DEBUG: ViewModel purchaseCar called - carId=$carId, buyerId=$buyerId, price=$price")
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, isActionSuccess = false)
             transactionRepository.purchaseCar(carId, buyerId, price)
                 .onSuccess {
+                    println("DEBUG: ViewModel - Transaction success!")
                     _uiState.value = _uiState.value.copy(isLoading = false, isActionSuccess = true)
                 }
                 .onFailure { exception ->
+                    println("DEBUG: ViewModel - Transaction failed: ${exception.message}")
                     _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = exception.message)
                 }
         }

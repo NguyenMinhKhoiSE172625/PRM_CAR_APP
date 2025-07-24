@@ -13,10 +13,16 @@ class AuthRepository(private val tokenManager: TokenManager) {
 
     private fun decodeToken(token: String): Pair<String?, Int?> {
         val jwt = JWT(token)
+
+        // Parse role từ Microsoft claims
         val role = jwt.getClaim("role").asString()
             ?: jwt.getClaim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role").asString()
-        val userId = jwt.getClaim("id").asInt()
-            ?: jwt.getClaim("nameid").asInt()
+
+        // Parse userId từ Microsoft nameidentifier claim
+        val userIdString = jwt.getClaim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").asString()
+        val userId = userIdString?.toIntOrNull()
+
+        println("DEBUG: JWT decode - role=$role, userIdString=$userIdString, userId=$userId")
         return Pair(role, userId)
     }
 
@@ -30,8 +36,14 @@ class AuthRepository(private val tokenManager: TokenManager) {
                 if (loginResponse != null) {
                     tokenManager.saveToken(loginResponse.token)
                     val (role, userId) = decodeToken(loginResponse.token)
+                    println("DEBUG: Decoded token - role=$role, userId=$userId")
                     if (role != null) tokenManager.saveUserInfo(email, role)
-                    if (userId != null) tokenManager.saveUserId(userId)
+                    if (userId != null) {
+                        tokenManager.saveUserId(userId)
+                        println("DEBUG: Saved userId=$userId")
+                    } else {
+                        println("DEBUG: userId is null!")
+                    }
                     Result.success(loginResponse.token)
                 } else {
                     Result.failure(Exception("Empty response body or login failed"))

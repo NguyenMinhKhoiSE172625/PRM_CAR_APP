@@ -39,14 +39,27 @@ fun CartScreen(
 ) {
     var showInvoice by remember { mutableStateOf(false) }
     var isProcessingPayment by remember { mutableStateOf(false) }
+
+    // Lưu data cho invoice trước khi clear cart
+    var invoiceCartItems by remember { mutableStateOf<List<CartItemUi>>(emptyList()) }
+    var invoiceTotalPrice by remember { mutableStateOf(0) }
     val cartItems by cartViewModel.cartItems.collectAsState()
     val transactionUiState by transactionViewModel.uiState.collectAsState()
+    val totalPrice by cartViewModel.totalPrice.collectAsState()
+    val numberFormat = remember { NumberFormat.getInstance(Locale("vi", "VN")) }
+    val safeTotal = if (totalPrice < 0) 0 else totalPrice
 
     // Xử lý kết quả transaction
     LaunchedEffect(transactionUiState.isActionSuccess) {
         if (transactionUiState.isActionSuccess && isProcessingPayment) {
             isProcessingPayment = false
-            cartViewModel.clearCart() // Xóa cart sau khi thanh toán thành công
+
+            // Lưu data cho invoice TRƯỚC khi clear cart
+            invoiceCartItems = cartItems.toList()
+            invoiceTotalPrice = safeTotal
+            println("DEBUG: Saved invoice data - items=${invoiceCartItems.size}, total=$invoiceTotalPrice")
+
+            cartViewModel.clearCart() // Xóa cart sau khi lưu data
             showInvoice = true
             transactionViewModel.clearActionSuccess()
         }
@@ -56,20 +69,30 @@ fun CartScreen(
     LaunchedEffect(transactionUiState.errorMessage) {
         if (transactionUiState.errorMessage != null && isProcessingPayment) {
             isProcessingPayment = false
-            // Có thể hiển thị error dialog ở đây
+            println("DEBUG: Transaction error: ${transactionUiState.errorMessage}")
+            // TODO: Hiển thị error dialog cho user
         }
     }
-    val totalPrice by cartViewModel.totalPrice.collectAsState()
-    val numberFormat = remember { NumberFormat.getInstance(Locale("vi", "VN")) }
-    val safeTotal = if (totalPrice < 0) 0 else totalPrice
+
+
+    // Debug button enable conditions
+    val buttonEnabled = !isProcessingPayment && cartItems.isNotEmpty() && currentUserId != null
+    println("DEBUG: === CART SCREEN DEBUG ===")
+    println("DEBUG: Button enabled = $buttonEnabled")
+    println("DEBUG: isProcessingPayment = $isProcessingPayment")
+    println("DEBUG: cartItems.isNotEmpty() = ${cartItems.isNotEmpty()}")
+    println("DEBUG: cartItems.size = ${cartItems.size}")
+    println("DEBUG: currentUserId != null = ${currentUserId != null}")
+    println("DEBUG: currentUserId = $currentUserId")
+    println("DEBUG: =========================")
 
     if (showInvoice) {
         InvoiceScreen(
-            cartItems = cartItems,
-            totalPrice = safeTotal,
+            cartItems = invoiceCartItems, // Dùng saved data
+            totalPrice = invoiceTotalPrice, // Dùng saved data
             onBack = {
                 showInvoice = false
-                cartViewModel.clearCart()
+                // Cart đã được clear rồi, không cần clear lại
                 onNavigateHome?.invoke()
             }
         )
@@ -166,9 +189,9 @@ fun CartScreen(
                             if (currentUserId != null && cartItems.isNotEmpty()) {
                                 println("DEBUG: Starting payment process...")
                                 isProcessingPayment = true
-                                // Tạo transaction cho item đầu tiên (đơn giản hóa)
+                                // Tạo transaction cho 1 car (item đầu tiên trong cart)
                                 val firstItem = cartItems.first()
-                                println("DEBUG: Processing car ${firstItem.carId} with price ${firstItem.price}")
+                                println("DEBUG: Creating transaction for carId=${firstItem.carId}, buyerId=$currentUserId, price=${firstItem.price}")
                                 transactionViewModel.purchaseCar(
                                     carId = firstItem.carId,
                                     buyerId = currentUserId,
@@ -179,14 +202,14 @@ fun CartScreen(
                                 if (currentUserId == null) println("DEBUG: currentUserId is null")
                                 if (cartItems.isEmpty()) println("DEBUG: cartItems is empty")
 
-                                // Fallback: Hiển thị invoice ngay lập tức để test UI
-                                showInvoice = true
+                                // Không hiển thị invoice nếu conditions không đúng
+                                // showInvoice = true // Removed fallback
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        enabled = !isProcessingPayment && cartItems.isNotEmpty()
+                        enabled = !isProcessingPayment && cartItems.isNotEmpty() && currentUserId != null
                     ) {
                         if (isProcessingPayment) {
                             CircularProgressIndicator(

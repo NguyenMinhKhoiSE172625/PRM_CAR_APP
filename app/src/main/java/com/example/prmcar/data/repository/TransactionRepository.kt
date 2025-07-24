@@ -103,34 +103,33 @@ class TransactionRepository(private val tokenManager: TokenManager) {
     suspend fun purchaseCar(carId: Int, buyerId: Int, price: Double): Result<TransactionResponse> {
         return try {
             val authToken = getAuthToken()
+            println("DEBUG: Starting purchase - carId=$carId, buyerId=$buyerId, price=$price")
 
-            // Thử dùng endpoint purchase trước
-            try {
-                val purchaseRequest = PurchaseCarRequest(carId, buyerId, price)
-                val purchaseResponse = transactionApi.purchaseCar(authToken, purchaseRequest)
-                if (purchaseResponse.isSuccessful) {
-                    return purchaseResponse.body()?.let { Result.success(it) }
-                        ?: Result.failure(Exception("Purchase failed"))
-                }
-            } catch (e: Exception) {
-                // Nếu purchase endpoint không hoạt động, thử dùng create transaction
-            }
+            // Dùng create transaction endpoint (đã test thành công trong Swagger)
+            println("DEBUG: Using create transaction endpoint...")
+            // Tạo current date với format đúng
+            val currentDateTime = java.time.LocalDateTime.now()
+            val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            val formattedDate = currentDateTime.format(formatter)
 
-            // Fallback: Dùng create transaction endpoint
             val transactionRequest = TransactionRequest(
                 carId = carId,
                 buyerId = buyerId,
-                transactionDate = java.time.LocalDateTime.now().toString(),
+                transactionDate = formattedDate,
                 sellingPrice = price,
                 transactionStatus = "Completed"
             )
             val response = transactionApi.createTransaction(authToken, transactionRequest)
+            println("DEBUG: Create transaction response code: ${response.code()}")
             if (response.isSuccessful) {
+                println("DEBUG: Create transaction successful!")
                 response.body()?.let { Result.success(it) } ?: Result.failure(Exception("Transaction failed"))
             } else {
+                println("DEBUG: Create transaction failed: ${response.message()}")
                 Result.failure(Exception("Failed to create transaction: ${response.message()}"))
             }
         } catch (e: Exception) {
+            println("DEBUG: Exception in purchaseCar: ${e.message}")
             Result.failure(e)
         }
     }
