@@ -26,6 +26,7 @@ import com.example.prmcar.presentation.viewmodel.CarTypeViewModel
 import com.example.prmcar.presentation.screen.TransactionListScreen
 import com.example.prmcar.presentation.viewmodel.TransactionViewModel
 import com.example.prmcar.presentation.screen.UserListScreen
+import com.example.prmcar.presentation.screen.UserProfileScreen
 import com.example.prmcar.presentation.viewmodel.UserViewModel
 import com.example.prmcar.presentation.screen.CartScreen
 import com.example.prmcar.presentation.viewmodel.CartViewModel
@@ -43,6 +44,7 @@ sealed class Screen(val route: String) {
     object CarTypeList : Screen("car_type_list")
     object TransactionList : Screen("transaction_list")
     object UserList : Screen("user_list")
+    object UserProfile : Screen("user_profile")
 }
 
 @Composable
@@ -126,7 +128,11 @@ fun AppNavigation(
                     navController.navigate(Screen.TransactionList.route)
                 },
                 onUserManageClick = {
-                    navController.navigate(Screen.UserList.route)
+                    if (authUiState.userType == "Admin") {
+                        navController.navigate(Screen.UserList.route)
+                    } else {
+                        navController.navigate(Screen.UserProfile.route)
+                    }
                 },
                 cartViewModel = cartViewModel,
                 onCartClick = {
@@ -138,6 +144,8 @@ fun AppNavigation(
         composable("cart") {
             CartScreen(
                 cartViewModel = cartViewModel,
+                transactionViewModel = transactionViewModel,
+                currentUserId = authUiState.userId,
                 onCheckout = { _, _ -> },
                 onNavigateHome = {
                     navController.popBackStack(Screen.CarList.route, inclusive = false)
@@ -197,7 +205,6 @@ fun AppNavigation(
         }
 
         composable(Screen.TransactionList.route) {
-            LaunchedEffect(Unit) { transactionViewModel.loadTransactions() }
             TransactionListScreen(
                 transactionUiState = transactionUiState,
                 transactionViewModel = transactionViewModel,
@@ -217,6 +224,13 @@ fun AppNavigation(
                 onBack = { navController.popBackStack() },
                 userType = authUiState.userType,
                 currentUserId = authUiState.userId
+            )
+        }
+
+        composable(Screen.UserProfile.route) {
+            UserProfileScreen(
+                authUiState = authUiState,
+                onBack = { navController.popBackStack() }
             )
         }
     }

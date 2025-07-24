@@ -36,6 +36,19 @@ class TransactionViewModel(private val transactionRepository: TransactionReposit
         }
     }
 
+    fun loadTransactionsByUserId(userId: Int) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            transactionRepository.getTransactionsByUserId(userId)
+                .onSuccess { transactions ->
+                    _uiState.value = _uiState.value.copy(isLoading = false, transactions = transactions)
+                }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = exception.message)
+                }
+        }
+    }
+
     fun getTransactionById(id: Int) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, selectedTransaction = null)
@@ -102,4 +115,19 @@ class TransactionViewModel(private val transactionRepository: TransactionReposit
     fun clearActionSuccess() {
         _uiState.value = _uiState.value.copy(isActionSuccess = false)
     }
-} 
+
+    fun purchaseCar(carId: Int, buyerId: Int, price: Double) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, isActionSuccess = false)
+            transactionRepository.purchaseCar(carId, buyerId, price)
+                .onSuccess {
+                    _uiState.value = _uiState.value.copy(isLoading = false, isActionSuccess = true)
+                }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = exception.message)
+                }
+        }
+    }
+
+
+}

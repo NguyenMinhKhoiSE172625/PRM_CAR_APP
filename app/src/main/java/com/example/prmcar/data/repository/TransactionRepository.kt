@@ -1,6 +1,7 @@
 package com.example.prmcar.data.repository
 
 import com.example.prmcar.data.api.ApiClient
+import com.example.prmcar.data.api.PurchaseCarRequest
 import com.example.prmcar.data.api.TransactionApi
 import com.example.prmcar.data.model.TransactionRequest
 import com.example.prmcar.data.model.TransactionResponse
@@ -37,6 +38,20 @@ class TransactionRepository(private val tokenManager: TokenManager) {
                 response.body()?.let { Result.success(it) } ?: Result.failure(Exception("Transaction not found"))
             } else {
                 Result.failure(Exception("Failed to get transaction: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getTransactionsByUserId(userId: Int): Result<List<TransactionResponse>> {
+        return try {
+            val authToken = getAuthToken()
+            val response = transactionApi.getTransactionsByUserId(authToken, userId)
+            if (response.isSuccessful) {
+                Result.success(response.body()?.items ?: emptyList())
+            } else {
+                Result.failure(Exception("Failed to get user transactions: ${response.message()}"))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -84,4 +99,39 @@ class TransactionRepository(private val tokenManager: TokenManager) {
             Result.failure(e)
         }
     }
-} 
+
+    suspend fun purchaseCar(carId: Int, buyerId: Int, price: Double): Result<TransactionResponse> {
+        return try {
+            val authToken = getAuthToken()
+
+            // Thử dùng endpoint purchase trước
+            try {
+                val purchaseRequest = PurchaseCarRequest(carId, buyerId, price)
+                val purchaseResponse = transactionApi.purchaseCar(authToken, purchaseRequest)
+                if (purchaseResponse.isSuccessful) {
+                    return purchaseResponse.body()?.let { Result.success(it) }
+                        ?: Result.failure(Exception("Purchase failed"))
+                }
+            } catch (e: Exception) {
+                // Nếu purchase endpoint không hoạt động, thử dùng create transaction
+            }
+
+            // Fallback: Dùng create transaction endpoint
+            val transactionRequest = TransactionRequest(
+                carId = carId,
+                buyerId = buyerId,
+                transactionDate = java.time.LocalDateTime.now().toString(),
+                sellingPrice = price,
+                transactionStatus = "Completed"
+            )
+            val response = transactionApi.createTransaction(authToken, transactionRequest)
+            if (response.isSuccessful) {
+                response.body()?.let { Result.success(it) } ?: Result.failure(Exception("Transaction failed"))
+            } else {
+                Result.failure(Exception("Failed to create transaction: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}

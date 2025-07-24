@@ -19,6 +19,7 @@ import com.example.prmcar.presentation.viewmodel.TransactionUiState
 import com.example.prmcar.presentation.viewmodel.TransactionViewModel
 import androidx.compose.foundation.clickable
 import com.example.prmcar.data.model.CarResponse
+import com.example.prmcar.presentation.util.formatPrice
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,10 +36,24 @@ fun TransactionListScreen(
     var showEditDialog by remember { mutableStateOf<Pair<Boolean, Int?>>(false to null) }
     var showDetailDialog by remember { mutableStateOf(false) }
 
+    // Load transactions based on user type
+    LaunchedEffect(userType, currentUserId) {
+        if (userType == "Admin") {
+            transactionViewModel.loadTransactions()
+        } else if (currentUserId != null) {
+            transactionViewModel.loadTransactionsByUserId(currentUserId)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Transactions Management") },
+                title = {
+                    Text(
+                        if (userType == "Admin") "Transactions Management"
+                        else "Giao dịch của tôi"
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -254,7 +269,7 @@ fun TransactionDetailDialog(transaction: com.example.prmcar.data.model.Transacti
                 Text("Car ID: ${transaction.carId}")
                 Text("Buyer ID: ${transaction.buyerId}")
                 Text("Date: ${transaction.transactionDate ?: ""}")
-                Text("Price: ${transaction.sellingPrice}")
+                Text("Price: ${formatPrice(transaction.sellingPrice)}")
                 Text("Status: ${transaction.transactionStatus ?: ""}")
             }
         },

@@ -93,14 +93,18 @@ fun CarListScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onCarTypeManageClick) {
-                        Icon(Icons.Default.ListAlt, contentDescription = "Manage Car Types")
+                    if (authUiState.userType == "Admin") {
+                        IconButton(onClick = onCarTypeManageClick) {
+                            Icon(Icons.Default.ListAlt, contentDescription = "Manage Car Types")
+                        }
                     }
                     IconButton(onClick = onTransactionManageClick) {
                         Icon(Icons.Default.Receipt, contentDescription = "Manage Transactions")
                     }
                     IconButton(onClick = onUserManageClick) {
-                        Icon(Icons.Default.Person, contentDescription = "Manage Users")
+                        Icon(Icons.Default.Person, contentDescription =
+                            if (authUiState.userType == "Admin") "Manage Users" else "Profile"
+                        )
                     }
                     IconButton(onClick = onLogout) {
                         Icon(Icons.Default.ExitToApp, contentDescription = "Logout")

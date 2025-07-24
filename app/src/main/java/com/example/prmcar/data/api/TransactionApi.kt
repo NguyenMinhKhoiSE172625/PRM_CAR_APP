@@ -13,6 +13,9 @@ interface TransactionApi {
     @GET("api/Transactions/{id}")
     suspend fun getTransactionById(@Header("Authorization") token: String, @Path("id") id: Int): Response<TransactionResponse>
 
+    @GET("api/Transactions/GetByUserID")
+    suspend fun getTransactionsByUserId(@Header("Authorization") token: String, @Query("id") userId: Int): Response<TransactionsResponse>
+
     @POST("api/Transactions")
     suspend fun createTransaction(@Header("Authorization") token: String, @Body transaction: TransactionRequest): Response<TransactionResponse>
 
@@ -21,4 +24,13 @@ interface TransactionApi {
 
     @DELETE("api/Transactions/{id}")
     suspend fun deleteTransaction(@Header("Authorization") token: String, @Path("id") id: Int): Response<Unit>
-} 
+
+    @POST("api/Transactions/purchase")
+    suspend fun purchaseCar(@Header("Authorization") token: String, @Body request: PurchaseCarRequest): Response<TransactionResponse>
+}
+
+data class PurchaseCarRequest(
+    val carId: Int,
+    val buyerId: Int,
+    val price: Double
+)

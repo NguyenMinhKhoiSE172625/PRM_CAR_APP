@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -24,16 +25,40 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import com.example.prmcar.presentation.viewmodel.TransactionViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun CartScreen(
     cartViewModel: CartViewModel = viewModel(),
+    transactionViewModel: TransactionViewModel = viewModel(),
+    currentUserId: Int?,
     onCheckout: (List<CartItemUi>, Int) -> Unit = { _, _ -> },
     onBack: (() -> Unit)? = null,
     onNavigateHome: (() -> Unit)? = null
 ) {
     var showInvoice by remember { mutableStateOf(false) }
+    var isProcessingPayment by remember { mutableStateOf(false) }
     val cartItems by cartViewModel.cartItems.collectAsState()
+    val transactionUiState by transactionViewModel.uiState.collectAsState()
+
+    // Xử lý kết quả transaction
+    LaunchedEffect(transactionUiState.isActionSuccess) {
+        if (transactionUiState.isActionSuccess && isProcessingPayment) {
+            isProcessingPayment = false
+            cartViewModel.clearCart() // Xóa cart sau khi thanh toán thành công
+            showInvoice = true
+            transactionViewModel.clearActionSuccess()
+        }
+    }
+
+    // Xử lý lỗi transaction
+    LaunchedEffect(transactionUiState.errorMessage) {
+        if (transactionUiState.errorMessage != null && isProcessingPayment) {
+            isProcessingPayment = false
+            // Có thể hiển thị error dialog ở đây
+        }
+    }
     val totalPrice by cartViewModel.totalPrice.collectAsState()
     val numberFormat = remember { NumberFormat.getInstance(Locale("vi", "VN")) }
     val safeTotal = if (totalPrice < 0) 0 else totalPrice
@@ -132,12 +157,45 @@ fun CartScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { showInvoice = true },
+                        onClick = {
+                            println("DEBUG: Button clicked!")
+                            println("DEBUG: currentUserId = $currentUserId")
+                            println("DEBUG: cartItems.size = ${cartItems.size}")
+                            println("DEBUG: isProcessingPayment = $isProcessingPayment")
+
+                            if (currentUserId != null && cartItems.isNotEmpty()) {
+                                println("DEBUG: Starting payment process...")
+                                isProcessingPayment = true
+                                // Tạo transaction cho item đầu tiên (đơn giản hóa)
+                                val firstItem = cartItems.first()
+                                println("DEBUG: Processing car ${firstItem.carId} with price ${firstItem.price}")
+                                transactionViewModel.purchaseCar(
+                                    carId = firstItem.carId,
+                                    buyerId = currentUserId,
+                                    price = firstItem.price.toDouble()
+                                )
+                            } else {
+                                println("DEBUG: Payment conditions not met")
+                                if (currentUserId == null) println("DEBUG: currentUserId is null")
+                                if (cartItems.isEmpty()) println("DEBUG: cartItems is empty")
+
+                                // Fallback: Hiển thị invoice ngay lập tức để test UI
+                                showInvoice = true
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        enabled = !isProcessingPayment && cartItems.isNotEmpty()
                     ) {
-                        Text("Thanh toán", color = Color.White)
+                        if (isProcessingPayment) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color.White
+                            )
+                        } else {
+                            Text("Thanh toán", color = Color.White)
+                        }
                     }
                 }
             }
